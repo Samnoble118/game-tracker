@@ -2,13 +2,23 @@
 
 declare(strict_types=1);
 
+/**
+ * Contains the core game entity and its collection-related business rules.
+ */
+
 namespace GameTracker\Domain\Entity;
 
 use GameTracker\Domain\Enum\GameStatus;
 use InvalidArgumentException;
 
+/**
+ * Represents one owned game, including its platform, status, and progress.
+ */
 final class Game
 {
+    /**
+     * Creates a validated game entity, optionally restored with a persisted ID.
+     */
     public function __construct(
         private string $title,
         private string $platform,
@@ -20,36 +30,57 @@ final class Game
         $this->setProgress($this->progress);
     }
 
+    /**
+     * Returns the persisted identifier, or null before the first save.
+     */
     public function id(): ?int
     {
         return $this->id;
     }
 
+    /**
+     * Returns the game's display title.
+     */
     public function title(): string
     {
         return $this->title;
     }
 
+    /**
+     * Returns the platform on which the game is owned.
+     */
     public function platform(): string
     {
         return $this->platform;
     }
 
+    /**
+     * Returns the game's current play status.
+     */
     public function status(): GameStatus
     {
         return $this->status;
     }
 
+    /**
+     * Returns completion progress as a percentage from 0 to 100.
+     */
     public function progress(): int
     {
         return $this->progress;
     }
 
+    /**
+     * Changes the current play status.
+     */
     public function updateStatus(GameStatus $status): void
     {
         $this->status = $status;
     }
 
+    /**
+     * Changes the title and platform after validating both values.
+     */
     public function updateDetails(string $title, string $platform): void
     {
         $title = trim($title);
@@ -67,6 +98,9 @@ final class Game
         $this->platform = $platform;
     }
 
+    /**
+     * Changes completion progress, enforcing the valid percentage range.
+     */
     public function setProgress(int $progress): void
     {
         if ($progress < 0 || $progress > 100) {
@@ -76,6 +110,9 @@ final class Game
         $this->progress = $progress;
     }
 
+    /**
+     * Assigns the database identifier once after the entity is first saved.
+     */
     public function assignId(int $id): void
     {
         if ($this->id !== null) {

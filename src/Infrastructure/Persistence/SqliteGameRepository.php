@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+/**
+ * Implements game persistence using a local SQLite database.
+ */
+
 namespace GameTracker\Infrastructure\Persistence;
 
 use GameTracker\Domain\Entity\Game;
@@ -9,8 +13,14 @@ use GameTracker\Domain\Enum\GameStatus;
 use GameTracker\Domain\Repository\GameRepository;
 use PDO;
 
+/**
+ * Stores and hydrates game entities through PDO-backed SQLite queries.
+ */
 final readonly class SqliteGameRepository implements GameRepository
 {
+    /**
+     * Accepts a PDO connection and ensures the games table exists.
+     */
     public function __construct(private PDO $connection)
     {
         $this->connection->exec(
@@ -25,6 +35,9 @@ final readonly class SqliteGameRepository implements GameRepository
         );
     }
 
+    /**
+     * Inserts new games and updates previously persisted games.
+     */
     public function save(Game $game): void
     {
         if ($game->id() === null) {
@@ -46,6 +59,11 @@ final readonly class SqliteGameRepository implements GameRepository
         $statement->execute([...$this->parameters($game), 'id' => $game->id()]);
     }
 
+    /**
+     * Returns every stored game ordered alphabetically by title.
+     *
+     * @return list<Game>
+     */
     public function all(): array
     {
         $rows = $this->connection
@@ -55,6 +73,9 @@ final readonly class SqliteGameRepository implements GameRepository
         return array_map($this->hydrate(...), $rows);
     }
 
+    /**
+     * Finds and hydrates one game by ID.
+     */
     public function find(int $id): ?Game
     {
         $statement = $this->connection->prepare(
@@ -66,7 +87,11 @@ final readonly class SqliteGameRepository implements GameRepository
         return $row === false ? null : $this->hydrate($row);
     }
 
-    /** @return array{title: string, platform: string, status: string, progress: int} */
+    /**
+     * Converts a game entity into named SQL parameters.
+     *
+     * @return array{title: string, platform: string, status: string, progress: int}
+     */
     private function parameters(Game $game): array
     {
         return [
@@ -77,7 +102,11 @@ final readonly class SqliteGameRepository implements GameRepository
         ];
     }
 
-    /** @param array{id: int|string, title: string, platform: string, status: string, progress: int|string} $row */
+    /**
+     * Reconstitutes a game entity from a database result row.
+     *
+     * @param array{id: int|string, title: string, platform: string, status: string, progress: int|string} $row
+     */
     private function hydrate(array $row): Game
     {
         return new Game(

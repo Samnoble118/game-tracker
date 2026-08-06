@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+/**
+ * Handles HTTP requests for listing, creating, and editing games.
+ */
+
 namespace GameTracker\Application\Http;
 
 use GameTracker\Application\Service\GameLibrary;
@@ -10,8 +14,14 @@ use GameTracker\Domain\Enum\GameStatus;
 use InvalidArgumentException;
 use ValueError;
 
+/**
+ * Translates web input into game-library operations and renders the collection.
+ */
 final readonly class GameController
 {
+    /**
+     * Creates the controller with its use-case, security, and view dependencies.
+     */
     public function __construct(
         private GameLibrary $library,
         private CsrfToken $csrf,
@@ -19,6 +29,13 @@ final readonly class GameController
     ) {
     }
 
+    /**
+     * Dispatches a page view or form submission and renders the resulting state.
+     *
+     * @param array<string, mixed> $server
+     * @param array<string, mixed> $query
+     * @param array<string, mixed> $input
+     */
     public function handle(array $server, array $query, array $input): void
     {
         $errors = [];
@@ -55,6 +72,8 @@ final readonly class GameController
     }
 
     /**
+     * Validates form input and creates or updates the requested game.
+     *
      * @param array<string, mixed> $input
      * @return array{list<string>, array{id: string, title: string, platform: string, status: string, progress: string}}
      */
@@ -106,7 +125,11 @@ final readonly class GameController
         return [[], $form];
     }
 
-    /** @return array{id: string, title: string, platform: string, status: string, progress: string} */
+    /**
+     * Returns default values for a blank add-game form.
+     *
+     * @return array{id: string, title: string, platform: string, status: string, progress: string}
+     */
     private function emptyForm(): array
     {
         return [
