@@ -25,8 +25,8 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     <title>Game Tracker</title>
     <link rel="stylesheet" href="/assets/app.css">
 </head>
-<body>
-    <header class="site-header">
+<body class="<?= $currentUser->dashboardImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->dashboardImageMode()) : '' ?>" style="<?= $currentUser->dashboardImage() !== null ? '--dashboard-image: url(\'/?route=dashboard-image\'); --dashboard-overlay: ' . ($currentUser->dashboardOverlay() / 100) : '' ?>">
+    <header class="site-header dashboard-header">
         <div>
             <p class="eyebrow">Your personal library</p>
             <h1>Game Tracker</h1>

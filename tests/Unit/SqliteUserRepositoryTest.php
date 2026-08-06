@@ -32,6 +32,7 @@ final class SqliteUserRepositoryTest extends TestCase
         $repository->save($user);
         $user->updateUsername('player_one');
         $user->updateEmail('updated@example.com');
+        $user->updateDashboardAppearance('banner.webp', 'wallpaper', 70);
         $repository->save($user);
 
         $stored = $repository->findByUsername('PLAYER_ONE');
@@ -39,5 +40,8 @@ final class SqliteUserRepositoryTest extends TestCase
         self::assertNotNull($stored);
         self::assertSame('updated@example.com', $stored->email());
         self::assertSame('player_one', $stored->username());
+        self::assertSame('banner.webp', $stored->dashboardImage());
+        self::assertSame('wallpaper', $stored->dashboardImageMode());
+        self::assertSame(70, $stored->dashboardOverlay());
     }
 }

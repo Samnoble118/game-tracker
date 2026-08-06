@@ -2,6 +2,7 @@
 /.phpunit.cache/
 /.phpunit.result.cache
 /storage/*.sqlite
+/storage/uploads/
 /.idea/
 /.vscode/
 .DS_Store

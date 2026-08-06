@@ -17,9 +17,17 @@ final class User
         private string $passwordHash,
         private ?int $id = null,
         private ?string $username = null,
+        private ?string $dashboardImage = null,
+        private string $dashboardImageMode = 'banner',
+        private int $dashboardOverlay = 55,
     ) {
         $this->updateEmail($this->email);
         $this->updateUsername($this->username);
+        $this->updateDashboardAppearance(
+            $this->dashboardImage,
+            $this->dashboardImageMode,
+            $this->dashboardOverlay,
+        );
     }
 
     public function id(): ?int
@@ -45,6 +53,36 @@ final class User
     public function displayName(): string
     {
         return $this->username ?? $this->email;
+    }
+
+    public function dashboardImage(): ?string
+    {
+        return $this->dashboardImage;
+    }
+
+    public function dashboardImageMode(): string
+    {
+        return $this->dashboardImageMode;
+    }
+
+    public function dashboardOverlay(): int
+    {
+        return $this->dashboardOverlay;
+    }
+
+    public function updateDashboardAppearance(?string $image, string $mode, int $overlay): void
+    {
+        if (!in_array($mode, ['banner', 'wallpaper'], true)) {
+            throw new InvalidArgumentException('Choose either banner or wallpaper mode.');
+        }
+
+        if ($overlay < 20 || $overlay > 90) {
+            throw new InvalidArgumentException('Overlay strength must be between 20 and 90.');
+        }
+
+        $this->dashboardImage = $image;
+        $this->dashboardImageMode = $mode;
+        $this->dashboardOverlay = $overlay;
     }
 
     public function updateEmail(string $email): void
