@@ -11,6 +11,7 @@ use GameTracker\Application\Http\AccountController;
 use GameTracker\Application\Http\GameController;
 use GameTracker\Application\Http\TrophyController;
 use GameTracker\Application\Service\Authenticator;
+use GameTracker\Application\Service\DashboardCustomizer;
 use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Application\Service\TrophyCabinet;
 use GameTracker\Core\Database;
@@ -35,6 +36,7 @@ $connection = $database->connection();
 $userRepository = new SqliteUserRepository($connection);
 $gameRepository = new SqliteGameRepository($connection);
 $auth = new Authenticator($userRepository);
+$customizer = new DashboardCustomizer($userRepository, $root . '/storage/uploads');
 $csrf = new CsrfToken();
 $authController = new AuthController($auth, $gameRepository, $csrf, $root . '/templates/auth/form.php');
 $route = (string) ($_GET['route'] ?? '');
@@ -64,10 +66,25 @@ if ($currentUser === null) {
 if ($route === 'account') {
     $accountController = new AccountController(
         $auth,
+        $customizer,
         $csrf,
         $root . '/templates/account/index.php',
     );
-    $accountController->handle($currentUser, $_SERVER, $_GET, $_POST);
+    $accountController->handle($currentUser, $_SERVER, $_GET, $_POST, $_FILES);
+    return;
+}
+
+if ($route === 'dashboard-image') {
+    $imagePath = $customizer->pathFor($currentUser);
+    if ($imagePath === null) {
+        http_response_code(404);
+        return;
+    }
+
+    header('Content-Type: ' . (new finfo(FILEINFO_MIME_TYPE))->file($imagePath));
+    header('Cache-Control: private, no-cache');
+    header('X-Content-Type-Options: nosniff');
+    readfile($imagePath);
     return;
 }
 

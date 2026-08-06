@@ -22,12 +22,12 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
             <a class="back-link" href="/">← Back to collection</a>
             <p class="eyebrow">Player settings</p>
             <h1>My Account</h1>
-            <p class="lede">Manage how you sign in and how your name appears.</p>
+            <p class="lede">Manage your profile, security, and dashboard style.</p>
         </div>
     </header>
 
     <main class="account-layout">
-        <section class="panel">
+        <section class="panel account-card">
             <div class="panel-heading">
                 <div><p class="eyebrow">Profile</p><h2>Account details</h2></div>
             </div>
@@ -45,7 +45,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
             </form>
         </section>
 
-        <section class="panel">
+        <section class="panel account-card">
             <div class="panel-heading">
                 <div><p class="eyebrow">Security</p><h2>Change password</h2></div>
             </div>
@@ -61,6 +61,36 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                 <label><span>Confirm new password</span><input type="password" name="new_password_confirmation" required minlength="10" autocomplete="new-password"></label>
                 <button class="primary-button" type="submit">Update password</button>
             </form>
+        </section>
+
+        <section class="panel appearance-panel">
+            <div class="panel-heading">
+                <div><p class="eyebrow">Personalisation</p><h2>Dashboard appearance</h2></div>
+                <p class="section-description">Add a personal backdrop while keeping your collection easy to read.</p>
+            </div>
+            <?php if ($section === 'appearance' && $errors !== []): ?>
+                <div class="alert alert-error" role="alert"><?php foreach ($errors as $error): ?><p><?= $escape($error) ?></p><?php endforeach; ?></div>
+            <?php endif; ?>
+            <?php if ($saved === 'appearance'): ?><div class="alert alert-success">Dashboard appearance updated.</div><?php endif; ?>
+            <div class="appearance-grid">
+                <div class="appearance-preview <?= $user->dashboardImage() === null ? 'is-empty' : '' ?>" <?= $user->dashboardImage() !== null ? 'style="--dashboard-image: url(\'/?route=dashboard-image\'); --dashboard-overlay: ' . ($user->dashboardOverlay() / 100) . '"' : '' ?>>
+                    <?php if ($user->dashboardImage() === null): ?><span>Your image preview will appear here</span><?php endif; ?>
+                </div>
+                <form method="post" action="/?route=account" class="game-form appearance-form" enctype="multipart/form-data">
+                    <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
+                    <input type="hidden" name="section" value="appearance">
+                    <label><span>Choose an image</span><input type="file" name="dashboard_image" accept="image/jpeg,image/png,image/webp"></label>
+                    <p class="field-help">JPEG, PNG, or WebP, up to 5 MB.</p>
+                    <label><span>Display style</span><select name="image_mode"><option value="banner" <?= $user->dashboardImageMode() === 'banner' ? 'selected' : '' ?>>Header banner</option><option value="wallpaper" <?= $user->dashboardImageMode() === 'wallpaper' ? 'selected' : '' ?>>Page wallpaper</option></select></label>
+                    <label><span>Dark overlay: <output id="overlay-output"><?= $user->dashboardOverlay() ?>%</output></span><input type="range" name="overlay" min="20" max="90" value="<?= $user->dashboardOverlay() ?>" oninput="document.getElementById('overlay-output').value = this.value + '%'" /></label>
+                    <div class="appearance-actions">
+                        <button class="primary-button" type="submit">Save appearance</button>
+                        <?php if ($user->dashboardImage() !== null): ?>
+                            <button class="danger-button" type="submit" name="appearance_action" value="remove">Remove image</button>
+                        <?php endif; ?>
+                    </div>
+                </form>
+            </div>
         </section>
     </main>
 </body>

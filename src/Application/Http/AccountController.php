@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace GameTracker\Application\Http;
 
 use GameTracker\Application\Service\Authenticator;
+use GameTracker\Application\Service\DashboardCustomizer;
 use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Domain\Entity\User;
 use InvalidArgumentException;
@@ -17,6 +18,7 @@ final readonly class AccountController
 {
     public function __construct(
         private Authenticator $auth,
+        private DashboardCustomizer $customizer,
         private CsrfToken $csrf,
         private string $templatePath,
     ) {
@@ -28,18 +30,32 @@ final readonly class AccountController
      * @param array<string, mixed> $server
      * @param array<string, mixed> $query
      * @param array<string, mixed> $input
+     * @param array<string, mixed> $files
      */
-    public function handle(User $user, array $server, array $query, array $input): void
+    public function handle(User $user, array $server, array $query, array $input, array $files = []): void
     {
         $errors = [];
-        $section = ($input['section'] ?? 'profile') === 'password' ? 'password' : 'profile';
+        $section = in_array(($input['section'] ?? 'profile'), ['password', 'appearance'], true)
+            ? (string) $input['section'] : 'profile';
 
         if (($server['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             if (!$this->csrf->isValid(isset($input['_token']) ? (string) $input['_token'] : null)) {
                 $errors[] = 'Your session expired. Refresh the page and try again.';
             } else {
                 try {
-                    if ($section === 'password') {
+                    if ($section === 'appearance') {
+                        if (($input['appearance_action'] ?? 'save') === 'remove') {
+                            $this->customizer->remove($user);
+                        } else {
+                            $this->customizer->update(
+                                $user,
+                                (string) ($input['image_mode'] ?? 'banner'),
+                                (int) ($input['overlay'] ?? 55),
+                                isset($files['dashboard_image']) && is_array($files['dashboard_image'])
+                                    ? $files['dashboard_image'] : null,
+                            );
+                        }
+                    } elseif ($section === 'password') {
                         $this->auth->updatePassword(
                             $user,
                             (string) ($input['current_password'] ?? ''),
