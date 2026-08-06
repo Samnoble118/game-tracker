@@ -41,4 +41,14 @@ final class GameTest extends TestCase
 
         new Game('Hades', 'PC', progress: 101);
     }
+
+    /**
+     * Confirms common PlayStation platform names enable trophy management.
+     */
+    public function test_it_recognises_playstation_platforms(): void
+    {
+        self::assertTrue((new Game('Astro Bot', 'PS5'))->supportsTrophies());
+        self::assertTrue((new Game('Bloodborne', 'PlayStation 4'))->supportsTrophies());
+        self::assertFalse((new Game('Hades', 'PC'))->supportsTrophies());
+    }
 }

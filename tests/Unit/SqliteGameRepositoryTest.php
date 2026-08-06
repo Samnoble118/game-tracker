@@ -11,6 +11,9 @@ namespace GameTracker\Tests\Unit;
 use GameTracker\Domain\Entity\Game;
 use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Infrastructure\Persistence\SqliteGameRepository;
+use GameTracker\Infrastructure\Persistence\SqliteTrophyRepository;
+use GameTracker\Domain\Entity\Trophy;
+use GameTracker\Domain\Enum\TrophyGrade;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -68,5 +71,27 @@ final class SqliteGameRepositoryTest extends TestCase
 
         self::assertNotNull($stored);
         self::assertSame(CollectionType::Wishlist, $stored->collectionType());
+    }
+
+    /**
+     * Confirms trophies are stored against their game with earned state intact.
+     */
+    public function test_it_persists_trophies_for_a_game(): void
+    {
+        $connection = new PDO('sqlite::memory:');
+        $connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        $games = new SqliteGameRepository($connection);
+        $game = new Game('Astro Bot', 'PS5');
+        $games->save($game);
+        $trophies = new SqliteTrophyRepository($connection);
+        $trophy = new Trophy($game->id(), 'A New Beginning', TrophyGrade::Bronze);
+        $trophy->setEarned(true);
+
+        $trophies->save($trophy);
+        $stored = $trophies->forGame($game->id());
+
+        self::assertCount(1, $stored);
+        self::assertTrue($stored[0]->isEarned());
+        self::assertSame(TrophyGrade::Bronze, $stored[0]->grade());
     }
 }
