@@ -14,8 +14,14 @@ use GameTracker\Domain\Enum\TrophyGrade;
 use GameTracker\Domain\Repository\TrophyRepository;
 use PDO;
 
+/**
+ * Stores and hydrates trophy entities through PDO-backed SQLite queries.
+ */
 final readonly class SqliteTrophyRepository implements TrophyRepository
 {
+    /**
+     * Accepts a PDO connection and ensures the trophy table exists.
+     */
     public function __construct(private PDO $connection)
     {
         $this->connection->exec(
@@ -32,6 +38,9 @@ final readonly class SqliteTrophyRepository implements TrophyRepository
         );
     }
 
+    /**
+     * Inserts new trophies and updates previously persisted trophies.
+     */
     public function save(Trophy $trophy): void
     {
         $parameters = [
@@ -60,6 +69,11 @@ final readonly class SqliteTrophyRepository implements TrophyRepository
         $statement->execute([...$parameters, 'id' => $trophy->id()]);
     }
 
+    /**
+     * Returns a game's trophies ordered from platinum to bronze.
+     *
+     * @return list<Trophy>
+     */
     public function forGame(int $gameId): array
     {
         $statement = $this->connection->prepare(
@@ -75,6 +89,9 @@ final readonly class SqliteTrophyRepository implements TrophyRepository
         return array_map($this->hydrate(...), $statement->fetchAll());
     }
 
+    /**
+     * Finds and hydrates one trophy by ID.
+     */
     public function find(int $id): ?Trophy
     {
         $statement = $this->connection->prepare(
@@ -86,7 +103,11 @@ final readonly class SqliteTrophyRepository implements TrophyRepository
         return $row === false ? null : $this->hydrate($row);
     }
 
-    /** @param array<string, int|string|null> $row */
+    /**
+     * Reconstitutes a trophy entity from a database result row.
+     *
+     * @param array<string, int|string|null> $row
+     */
     private function hydrate(array $row): Trophy
     {
         return new Trophy(

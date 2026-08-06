@@ -30,3 +30,19 @@ Open <http://localhost:8000> in your browser.
 `Database` is deliberately the only singleton. Its PDO connection is created
 only on first use. Domain objects and application services use normal dependency
 injection so they remain easy to test and replace.
+
+## Versioning and releases
+
+Game Tracker uses [Semantic Versioning](https://semver.org/). Released versions
+are identified by Git tags such as `v1.0.0` and `v1.0.1`, then published as
+GitHub Releases. Changes planned for the next release are collected in
+[`CHANGELOG.md`](CHANGELOG.md) under `Unreleased`.
+
+The version is intentionally not hardcoded in `composer.json`: Composer derives
+package versions from Git tags. Create a release only from an reviewed commit on
+`main`.
+
+```bash
+git tag -a v1.0.0 -m "Game Tracker 1.0.0"
+git push origin v1.0.0
+```

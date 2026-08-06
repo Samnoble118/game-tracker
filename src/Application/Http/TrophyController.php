@@ -15,8 +15,14 @@ use GameTracker\Domain\Enum\TrophyGrade;
 use InvalidArgumentException;
 use ValueError;
 
+/**
+ * Translates trophy form input into use cases and renders one game's checklist.
+ */
 final readonly class TrophyController
 {
+    /**
+     * Creates the controller with game, trophy, security, and view dependencies.
+     */
     public function __construct(
         private GameLibrary $games,
         private TrophyCabinet $trophies,
