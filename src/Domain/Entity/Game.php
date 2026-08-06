@@ -81,6 +81,14 @@ final class Game
     }
 
     /**
+     * Reports whether the platform can have PlayStation trophies.
+     */
+    public function supportsTrophies(): bool
+    {
+        return preg_match('/playstation|\bps[345]\b/i', $this->platform) === 1;
+    }
+
+    /**
      * Changes the current play status.
      */
     public function updateStatus(GameStatus $status): void

@@ -159,6 +159,9 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                             <div class="progress-track" aria-label="<?= $game->progress() ?>% complete">
                                 <span style="width: <?= $game->progress() ?>%"></span>
                             </div>
+                            <?php if ($game->supportsTrophies()): ?>
+                                <a class="trophy-link" href="/?trophies=<?= $game->id() ?>">Manage trophies <span aria-hidden="true">→</span></a>
+                            <?php endif; ?>
                         </article>
                     <?php endforeach; ?>
                 </div>
