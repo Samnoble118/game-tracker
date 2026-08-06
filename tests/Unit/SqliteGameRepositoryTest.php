@@ -45,7 +45,8 @@ final class SqliteGameRepositoryTest extends TestCase
         );
 
         $repository = new SqliteGameRepository($connection);
-        $game = $repository->find(1);
+        $repository->claimUnowned(1);
+        $game = $repository->find(1, 1);
 
         self::assertNotNull($game);
         self::assertSame(CollectionType::Owned, $game->collectionType());
@@ -63,11 +64,12 @@ final class SqliteGameRepositoryTest extends TestCase
         $game = new Game(
             'Metroid Prime 4',
             'Nintendo Switch 2',
+            1,
             collectionType: CollectionType::Wishlist,
         );
 
         $repository->save($game);
-        $stored = $repository->find($game->id());
+        $stored = $repository->find($game->id(), 1);
 
         self::assertNotNull($stored);
         self::assertSame(CollectionType::Wishlist, $stored->collectionType());
@@ -81,7 +83,7 @@ final class SqliteGameRepositoryTest extends TestCase
         $connection = new PDO('sqlite::memory:');
         $connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         $games = new SqliteGameRepository($connection);
-        $game = new Game('Astro Bot', 'PS5');
+        $game = new Game('Astro Bot', 'PS5', 1);
         $games->save($game);
         $trophies = new SqliteTrophyRepository($connection);
         $trophy = new Trophy($game->id(), 'A New Beginning', TrophyGrade::Bronze);
@@ -93,5 +95,21 @@ final class SqliteGameRepositoryTest extends TestCase
         self::assertCount(1, $stored);
         self::assertTrue($stored[0]->isEarned());
         self::assertSame(TrophyGrade::Bronze, $stored[0]->grade());
+    }
+
+    /**
+     * Confirms repository queries never expose another user's games.
+     */
+    public function test_it_isolates_games_by_user(): void
+    {
+        $connection = new PDO('sqlite::memory:');
+        $connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        $repository = new SqliteGameRepository($connection);
+        $repository->save(new Game('Astro Bot', 'PS5', 1));
+        $repository->save(new Game('Hades', 'PC', 2));
+
+        self::assertCount(1, $repository->all(1));
+        self::assertSame('Astro Bot', $repository->all(1)[0]->title());
+        self::assertNull($repository->find(2, 1));
     }
 }

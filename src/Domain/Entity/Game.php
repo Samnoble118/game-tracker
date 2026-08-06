@@ -23,6 +23,7 @@ final class Game
     public function __construct(
         private string $title,
         private string $platform,
+        private readonly int $userId,
         private GameStatus $status = GameStatus::Backlog,
         private int $progress = 0,
         private ?int $id = null,
@@ -54,6 +55,14 @@ final class Game
     public function platform(): string
     {
         return $this->platform;
+    }
+
+    /**
+     * Returns the user who owns this library entry.
+     */
+    public function userId(): int
+    {
+        return $this->userId;
     }
 
     /**

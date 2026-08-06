@@ -38,6 +38,14 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
         </div>
     </header>
 
+    <div class="account-bar">
+        <span>Signed in as <?= $escape($currentUser->email()) ?></span>
+        <form method="post" action="/?route=logout">
+            <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
+            <button class="logout-button" type="submit">Sign out</button>
+        </form>
+    </div>
+
     <main class="layout trophy-layout">
         <section class="panel form-panel" aria-labelledby="add-trophy-title">
             <div class="panel-heading">

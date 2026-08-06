@@ -25,10 +25,15 @@ interface GameRepository
      *
      * @return list<Game>
      */
-    public function all(): array;
+    public function all(int $userId): array;
 
     /**
      * Finds a game by ID or returns null when it does not exist.
      */
-    public function find(int $id): ?Game;
+    public function find(int $id, int $userId): ?Game;
+
+    /**
+     * Assigns legacy unowned games to the first registered account.
+     */
+    public function claimUnowned(int $userId): void;
 }

@@ -24,7 +24,7 @@ final class GameLibraryTest extends TestCase
      */
     public function test_it_adds_and_updates_a_game(): void
     {
-        $library = new GameLibrary(new InMemoryGameRepository());
+        $library = new GameLibrary(new InMemoryGameRepository(), 1);
         $game = $library->add('Hades', 'PC');
 
         $updated = $library->update(
@@ -47,7 +47,7 @@ final class GameLibraryTest extends TestCase
      */
     public function test_it_adds_a_game_to_the_wishlist(): void
     {
-        $library = new GameLibrary(new InMemoryGameRepository());
+        $library = new GameLibrary(new InMemoryGameRepository(), 1);
 
         $game = $library->add(
             'Metroid Prime 4',

@@ -11,6 +11,7 @@ namespace GameTracker\Application\Http;
 use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Domain\Entity\Game;
+use GameTracker\Domain\Entity\User;
 use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\GameStatus;
 use InvalidArgumentException;
@@ -30,6 +31,7 @@ final readonly class GameController
         private GameLibrary $library,
         private CsrfToken $csrf,
         private string $templatePath,
+        private User $currentUser,
     ) {
     }
 
@@ -84,6 +86,7 @@ final readonly class GameController
         $collectionTypes = CollectionType::cases();
         $csrfToken = $this->csrf->value();
         $saved = isset($query['saved']);
+        $currentUser = $this->currentUser;
 
         require $this->templatePath;
     }
