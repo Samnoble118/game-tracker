@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace GameTracker\Infrastructure\Persistence;
 
 use GameTracker\Domain\Entity\Game;
+use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\GameStatus;
 use GameTracker\Domain\Repository\GameRepository;
 use PDO;
@@ -28,11 +29,14 @@ final readonly class SqliteGameRepository implements GameRepository
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
                 platform TEXT NOT NULL,
+                collection_type TEXT NOT NULL DEFAULT \'owned\',
                 status TEXT NOT NULL,
                 progress INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )'
         );
+
+        $this->migrateCollectionType();
     }
 
     /**
@@ -42,8 +46,8 @@ final readonly class SqliteGameRepository implements GameRepository
     {
         if ($game->id() === null) {
             $statement = $this->connection->prepare(
-                'INSERT INTO games (title, platform, status, progress)
-                 VALUES (:title, :platform, :status, :progress)'
+                'INSERT INTO games (title, platform, collection_type, status, progress)
+                 VALUES (:title, :platform, :collection_type, :status, :progress)'
             );
             $statement->execute($this->parameters($game));
             $game->assignId((int) $this->connection->lastInsertId());
@@ -53,7 +57,8 @@ final readonly class SqliteGameRepository implements GameRepository
 
         $statement = $this->connection->prepare(
             'UPDATE games
-             SET title = :title, platform = :platform, status = :status, progress = :progress
+             SET title = :title, platform = :platform, collection_type = :collection_type,
+                 status = :status, progress = :progress
              WHERE id = :id'
         );
         $statement->execute([...$this->parameters($game), 'id' => $game->id()]);
@@ -67,7 +72,7 @@ final readonly class SqliteGameRepository implements GameRepository
     public function all(): array
     {
         $rows = $this->connection
-            ->query('SELECT id, title, platform, status, progress FROM games ORDER BY title')
+            ->query('SELECT id, title, platform, collection_type, status, progress FROM games ORDER BY title')
             ->fetchAll();
 
         return array_map($this->hydrate(...), $rows);
@@ -79,7 +84,7 @@ final readonly class SqliteGameRepository implements GameRepository
     public function find(int $id): ?Game
     {
         $statement = $this->connection->prepare(
-            'SELECT id, title, platform, status, progress FROM games WHERE id = :id'
+            'SELECT id, title, platform, collection_type, status, progress FROM games WHERE id = :id'
         );
         $statement->execute(['id' => $id]);
         $row = $statement->fetch();
@@ -90,13 +95,14 @@ final readonly class SqliteGameRepository implements GameRepository
     /**
      * Converts a game entity into named SQL parameters.
      *
-     * @return array{title: string, platform: string, status: string, progress: int}
+     * @return array{title: string, platform: string, collection_type: string, status: string, progress: int}
      */
     private function parameters(Game $game): array
     {
         return [
             'title' => $game->title(),
             'platform' => $game->platform(),
+            'collection_type' => $game->collectionType()->value,
             'status' => $game->status()->value,
             'progress' => $game->progress(),
         ];
@@ -105,7 +111,7 @@ final readonly class SqliteGameRepository implements GameRepository
     /**
      * Reconstitutes a game entity from a database result row.
      *
-     * @param array{id: int|string, title: string, platform: string, status: string, progress: int|string} $row
+     * @param array{id: int|string, title: string, platform: string, collection_type: string, status: string, progress: int|string} $row
      */
     private function hydrate(array $row): Game
     {
@@ -115,6 +121,22 @@ final readonly class SqliteGameRepository implements GameRepository
             status: GameStatus::from($row['status']),
             progress: (int) $row['progress'],
             id: (int) $row['id'],
+            collectionType: CollectionType::from($row['collection_type']),
         );
+    }
+
+    /**
+     * Adds the collection column to databases created before wishlist support.
+     */
+    private function migrateCollectionType(): void
+    {
+        $columns = $this->connection->query('PRAGMA table_info(games)')->fetchAll();
+        $columnNames = array_column($columns, 'name');
+
+        if (!in_array('collection_type', $columnNames, true)) {
+            $this->connection->exec(
+                "ALTER TABLE games ADD COLUMN collection_type TEXT NOT NULL DEFAULT 'owned'"
+            );
+        }
     }
 }

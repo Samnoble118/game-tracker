@@ -9,10 +9,11 @@ declare(strict_types=1);
 namespace GameTracker\Domain\Entity;
 
 use GameTracker\Domain\Enum\GameStatus;
+use GameTracker\Domain\Enum\CollectionType;
 use InvalidArgumentException;
 
 /**
- * Represents one owned game, including its platform, status, and progress.
+ * Represents one tracked game, including its collection, platform, status, and progress.
  */
 final class Game
 {
@@ -25,6 +26,7 @@ final class Game
         private GameStatus $status = GameStatus::Backlog,
         private int $progress = 0,
         private ?int $id = null,
+        private CollectionType $collectionType = CollectionType::Owned,
     ) {
         $this->updateDetails($this->title, $this->platform);
         $this->setProgress($this->progress);
@@ -71,11 +73,27 @@ final class Game
     }
 
     /**
+     * Returns whether the game is owned or on the wishlist.
+     */
+    public function collectionType(): CollectionType
+    {
+        return $this->collectionType;
+    }
+
+    /**
      * Changes the current play status.
      */
     public function updateStatus(GameStatus $status): void
     {
         $this->status = $status;
+    }
+
+    /**
+     * Moves the game between the owned collection and wishlist.
+     */
+    public function updateCollectionType(CollectionType $collectionType): void
+    {
+        $this->collectionType = $collectionType;
     }
 
     /**

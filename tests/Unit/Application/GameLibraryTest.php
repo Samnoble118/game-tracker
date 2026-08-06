@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace GameTracker\Tests\Unit\Application;
 
 use GameTracker\Application\Service\GameLibrary;
+use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\GameStatus;
 use GameTracker\Tests\Support\InMemoryGameRepository;
 use PHPUnit\Framework\TestCase;
@@ -39,5 +40,21 @@ final class GameLibraryTest extends TestCase
         self::assertSame('Steam Deck', $updated->platform());
         self::assertSame(GameStatus::Playing, $updated->status());
         self::assertSame(35, $updated->progress());
+    }
+
+    /**
+     * Confirms games can be added directly to the wishlist.
+     */
+    public function test_it_adds_a_game_to_the_wishlist(): void
+    {
+        $library = new GameLibrary(new InMemoryGameRepository());
+
+        $game = $library->add(
+            'Metroid Prime 4',
+            'Nintendo Switch 2',
+            collectionType: CollectionType::Wishlist,
+        );
+
+        self::assertSame(CollectionType::Wishlist, $game->collectionType());
     }
 }
