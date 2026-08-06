@@ -24,6 +24,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Game Tracker</title>
     <link rel="stylesheet" href="/assets/app.css">
+    <script src="/assets/app.js" defer></script>
 </head>
 <body class="<?= $currentUser->dashboardImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->dashboardImageMode()) : '' ?>" style="<?= $currentUser->dashboardImage() !== null ? '--dashboard-image: url(\'/?route=dashboard-image\'); --dashboard-overlay: ' . ($currentUser->dashboardOverlay() / 100) : '' ?>">
     <header class="site-header dashboard-header">
@@ -61,7 +62,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     </nav>
 
     <section class="library-tools" aria-label="Filter game collection">
-        <form class="search-form" method="get" action="/">
+        <form class="search-form" method="get" action="/" data-live-search>
             <input type="hidden" name="view" value="<?= $escape($activeView) ?>">
             <input type="hidden" name="platform" value="<?= $escape($activePlatform) ?>">
             <label class="search-field"><span class="visually-hidden">Search games</span><input type="search" name="q" value="<?= $escape($search) ?>" placeholder="Search by game or platform…"></label>
@@ -70,7 +71,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                 <?php foreach ($statuses as $status): ?><option value="<?= $status->value ?>" <?= $statusFilter === $status->value ? 'selected' : '' ?>><?= ucfirst($status->value) ?></option><?php endforeach; ?>
             </select></label>
             <button class="filter-button" type="submit">Search</button>
-            <?php if ($search !== '' || $statusFilter !== 'all'): ?><a class="clear-filter" href="/?<?= $escape(http_build_query(['view' => $activeView, 'platform' => $activePlatform])) ?>">Clear</a><?php endif; ?>
+            <button class="reset-filter" type="button" data-reset-filters>Reset</button>
         </form>
         <nav class="platform-tabs" aria-label="Console families">
             <?php foreach ($platformGroups as $platformKey => $platformTitle): ?>
@@ -164,7 +165,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
             </form>
         </section>
 
-        <section class="panel collection-panel" aria-labelledby="collection-title">
+        <section class="panel collection-panel" aria-labelledby="collection-title" aria-live="polite">
             <div class="panel-heading">
                 <div>
                     <p class="eyebrow">Dashboard view</p>
