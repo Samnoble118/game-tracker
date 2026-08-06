@@ -14,9 +14,14 @@ final readonly class GameLibrary
     {
     }
 
-    public function add(string $title, string $platform): Game
+    public function add(
+        string $title,
+        string $platform,
+        GameStatus $status = GameStatus::Backlog,
+        int $progress = 0,
+    ): Game
     {
-        $game = new Game($title, $platform);
+        $game = new Game($title, $platform, $status, $progress);
         $this->games->save($game);
 
         return $game;
@@ -35,6 +40,32 @@ final readonly class GameLibrary
         $this->games->save($game);
 
         return $game;
+    }
+
+    public function update(
+        int $id,
+        string $title,
+        string $platform,
+        GameStatus $status,
+        int $progress,
+    ): ?Game {
+        $game = $this->games->find($id);
+
+        if ($game === null) {
+            return null;
+        }
+
+        $game->updateDetails($title, $platform);
+        $game->updateStatus($status);
+        $game->setProgress($progress);
+        $this->games->save($game);
+
+        return $game;
+    }
+
+    public function find(int $id): ?Game
+    {
+        return $this->games->find($id);
     }
 
     /** @return list<Game> */

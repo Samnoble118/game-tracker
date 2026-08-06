@@ -10,20 +10,13 @@ use InvalidArgumentException;
 final class Game
 {
     public function __construct(
-        private readonly string $title,
-        private readonly string $platform,
+        private string $title,
+        private string $platform,
         private GameStatus $status = GameStatus::Backlog,
         private int $progress = 0,
         private ?int $id = null,
     ) {
-        if (trim($this->title) === '') {
-            throw new InvalidArgumentException('A game title is required.');
-        }
-
-        if (trim($this->platform) === '') {
-            throw new InvalidArgumentException('A platform is required.');
-        }
-
+        $this->updateDetails($this->title, $this->platform);
         $this->setProgress($this->progress);
     }
 
@@ -55,6 +48,23 @@ final class Game
     public function updateStatus(GameStatus $status): void
     {
         $this->status = $status;
+    }
+
+    public function updateDetails(string $title, string $platform): void
+    {
+        $title = trim($title);
+        $platform = trim($platform);
+
+        if ($title === '') {
+            throw new InvalidArgumentException('A game title is required.');
+        }
+
+        if ($platform === '') {
+            throw new InvalidArgumentException('A platform is required.');
+        }
+
+        $this->title = $title;
+        $this->platform = $platform;
     }
 
     public function setProgress(int $progress): void
