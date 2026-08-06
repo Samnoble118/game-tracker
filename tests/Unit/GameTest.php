@@ -23,7 +23,7 @@ final class GameTest extends TestCase
      */
     public function test_it_tracks_status_and_progress(): void
     {
-        $game = new Game('Hades', 'PC');
+        $game = new Game('Hades', 'PC', 1);
 
         $game->updateStatus(GameStatus::Playing);
         $game->setProgress(40);
@@ -39,7 +39,7 @@ final class GameTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new Game('Hades', 'PC', progress: 101);
+        new Game('Hades', 'PC', 1, progress: 101);
     }
 
     /**
@@ -47,8 +47,8 @@ final class GameTest extends TestCase
      */
     public function test_it_recognises_playstation_platforms(): void
     {
-        self::assertTrue((new Game('Astro Bot', 'PS5'))->supportsTrophies());
-        self::assertTrue((new Game('Bloodborne', 'PlayStation 4'))->supportsTrophies());
-        self::assertFalse((new Game('Hades', 'PC'))->supportsTrophies());
+        self::assertTrue((new Game('Astro Bot', 'PS5', 1))->supportsTrophies());
+        self::assertTrue((new Game('Bloodborne', 'PlayStation 4', 1))->supportsTrophies());
+        self::assertFalse((new Game('Hades', 'PC', 1))->supportsTrophies());
     }
 }

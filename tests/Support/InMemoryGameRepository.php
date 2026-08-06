@@ -36,16 +36,28 @@ final class InMemoryGameRepository implements GameRepository
      *
      * @return list<Game>
      */
-    public function all(): array
+    public function all(int $userId): array
     {
-        return array_values($this->games);
+        return array_values(array_filter(
+            $this->games,
+            static fn (Game $game): bool => $game->userId() === $userId,
+        ));
     }
 
     /**
      * Finds an in-memory game by ID.
      */
-    public function find(int $id): ?Game
+    public function find(int $id, int $userId): ?Game
     {
-        return $this->games[$id] ?? null;
+        $game = $this->games[$id] ?? null;
+
+        return $game?->userId() === $userId ? $game : null;
+    }
+
+    /**
+     * Does nothing because test games always have explicit ownership.
+     */
+    public function claimUnowned(int $userId): void
+    {
     }
 }

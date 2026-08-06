@@ -21,7 +21,7 @@ final readonly class GameLibrary
     /**
      * Creates the service with a replaceable game repository implementation.
      */
-    public function __construct(private GameRepository $games)
+    public function __construct(private GameRepository $games, private int $userId)
     {
     }
 
@@ -36,7 +36,7 @@ final readonly class GameLibrary
         CollectionType $collectionType = CollectionType::Owned,
     ): Game
     {
-        $game = new Game($title, $platform, $status, $progress, collectionType: $collectionType);
+        $game = new Game($title, $platform, $this->userId, $status, $progress, collectionType: $collectionType);
         $this->games->save($game);
 
         return $game;
@@ -47,7 +47,7 @@ final readonly class GameLibrary
      */
     public function updateProgress(int $id, GameStatus $status, int $progress): ?Game
     {
-        $game = $this->games->find($id);
+        $game = $this->games->find($id, $this->userId);
 
         if ($game === null) {
             return null;
@@ -71,7 +71,7 @@ final readonly class GameLibrary
         int $progress,
         CollectionType $collectionType = CollectionType::Owned,
     ): ?Game {
-        $game = $this->games->find($id);
+        $game = $this->games->find($id, $this->userId);
 
         if ($game === null) {
             return null;
@@ -91,7 +91,7 @@ final readonly class GameLibrary
      */
     public function find(int $id): ?Game
     {
-        return $this->games->find($id);
+        return $this->games->find($id, $this->userId);
     }
 
     /**
@@ -101,6 +101,6 @@ final readonly class GameLibrary
      */
     public function collection(): array
     {
-        return $this->games->all();
+        return $this->games->all($this->userId);
     }
 }

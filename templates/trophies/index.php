@@ -38,6 +38,18 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
         </div>
     </header>
 
+    <div class="account-bar">
+        <div class="account-identity">
+            <span class="account-avatar" aria-hidden="true"><?= strtoupper(substr($currentUser->displayName(), 0, 1)) ?></span>
+            <span><small>Signed in as</small><strong><?= $escape($currentUser->displayName()) ?></strong></span>
+        </div>
+        <a class="account-button" href="/?route=account">My Account</a>
+        <form method="post" action="/?route=logout">
+            <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
+            <button class="logout-button" type="submit">Sign out</button>
+        </form>
+    </div>
+
     <main class="layout trophy-layout">
         <section class="panel form-panel" aria-labelledby="add-trophy-title">
             <div class="panel-heading">

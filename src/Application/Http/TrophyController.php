@@ -12,6 +12,7 @@ use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Application\Service\TrophyCabinet;
 use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Domain\Enum\TrophyGrade;
+use GameTracker\Domain\Entity\User;
 use InvalidArgumentException;
 use ValueError;
 
@@ -28,6 +29,7 @@ final readonly class TrophyController
         private TrophyCabinet $trophies,
         private CsrfToken $csrf,
         private string $templatePath,
+        private User $currentUser,
     ) {
     }
 
@@ -67,6 +69,7 @@ final readonly class TrophyController
         $grades = TrophyGrade::cases();
         $csrfToken = $this->csrf->value();
         $saved = isset($query['saved']);
+        $currentUser = $this->currentUser;
 
         require $this->templatePath;
     }
