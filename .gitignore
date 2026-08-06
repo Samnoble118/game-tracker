@@ -3,6 +3,7 @@
 /.phpunit.result.cache
 /storage/*.sqlite
 /storage/uploads/
+/storage/covers/
 /.idea/
 /.vscode/
 .DS_Store

@@ -33,12 +33,14 @@ final readonly class SqliteGameRepository implements GameRepository
                 collection_type TEXT NOT NULL DEFAULT \'owned\',
                 status TEXT NOT NULL,
                 progress INTEGER NOT NULL DEFAULT 0,
+                cover_image TEXT NULL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )'
         );
 
         $this->migrateUserId();
         $this->migrateCollectionType();
+        $this->migrateCoverImage();
     }
 
     /**
@@ -48,8 +50,8 @@ final readonly class SqliteGameRepository implements GameRepository
     {
         if ($game->id() === null) {
             $statement = $this->connection->prepare(
-                'INSERT INTO games (user_id, title, platform, collection_type, status, progress)
-                 VALUES (:user_id, :title, :platform, :collection_type, :status, :progress)'
+                'INSERT INTO games (user_id, title, platform, collection_type, status, progress, cover_image)
+                 VALUES (:user_id, :title, :platform, :collection_type, :status, :progress, :cover_image)'
             );
             $statement->execute($this->parameters($game));
             $game->assignId((int) $this->connection->lastInsertId());
@@ -60,7 +62,7 @@ final readonly class SqliteGameRepository implements GameRepository
         $statement = $this->connection->prepare(
             'UPDATE games
              SET title = :title, platform = :platform, collection_type = :collection_type,
-                 status = :status, progress = :progress
+                 status = :status, progress = :progress, cover_image = :cover_image
              WHERE id = :id AND user_id = :user_id'
         );
         $statement->execute([...$this->parameters($game), 'id' => $game->id()]);
@@ -74,7 +76,7 @@ final readonly class SqliteGameRepository implements GameRepository
     public function all(int $userId): array
     {
         $statement = $this->connection->prepare(
-            'SELECT id, user_id, title, platform, collection_type, status, progress
+            'SELECT id, user_id, title, platform, collection_type, status, progress, cover_image
              FROM games WHERE user_id = :user_id ORDER BY title'
         );
         $statement->execute(['user_id' => $userId]);
@@ -88,7 +90,7 @@ final readonly class SqliteGameRepository implements GameRepository
     public function find(int $id, int $userId): ?Game
     {
         $statement = $this->connection->prepare(
-            'SELECT id, user_id, title, platform, collection_type, status, progress
+            'SELECT id, user_id, title, platform, collection_type, status, progress, cover_image
              FROM games WHERE id = :id AND user_id = :user_id'
         );
         $statement->execute(['id' => $id, 'user_id' => $userId]);
@@ -111,6 +113,7 @@ final readonly class SqliteGameRepository implements GameRepository
             'collection_type' => $game->collectionType()->value,
             'status' => $game->status()->value,
             'progress' => $game->progress(),
+            'cover_image' => $game->coverImage(),
         ];
     }
 
@@ -129,6 +132,7 @@ final readonly class SqliteGameRepository implements GameRepository
             progress: (int) $row['progress'],
             id: (int) $row['id'],
             collectionType: CollectionType::from($row['collection_type']),
+            coverImage: $row['cover_image'] === null ? null : (string) $row['cover_image'],
         );
     }
 
@@ -157,6 +161,16 @@ final readonly class SqliteGameRepository implements GameRepository
 
         if (!in_array('user_id', $columnNames, true)) {
             $this->connection->exec('ALTER TABLE games ADD COLUMN user_id INTEGER NULL');
+        }
+    }
+
+    /** Adds private cover-image storage to databases created before cover support. */
+    private function migrateCoverImage(): void
+    {
+        $columns = $this->connection->query('PRAGMA table_info(games)')->fetchAll();
+
+        if (!in_array('cover_image', array_column($columns, 'name'), true)) {
+            $this->connection->exec('ALTER TABLE games ADD COLUMN cover_image TEXT NULL');
         }
     }
 
