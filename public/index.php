@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+/**
+ * Boots the application, wires its dependencies, and dispatches the web request.
+ */
+
 use GameTracker\Application\Http\GameController;
 use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Core\Database;

@@ -2,34 +2,56 @@
 
 declare(strict_types=1);
 
+/**
+ * Provides the application's lazily initialized PDO database connection.
+ */
+
 namespace GameTracker\Core;
 
 use PDO;
 
+/**
+ * Maintains one shared database wrapper and opens PDO only when first needed.
+ */
 final class Database
 {
     private static ?self $instance = null;
 
     private ?PDO $connection = null;
 
+    /**
+     * Stores the SQLite path without opening a connection immediately.
+     */
     private function __construct(private readonly string $databasePath)
     {
     }
 
+    /**
+     * Prevents the singleton from being cloned.
+     */
     private function __clone(): void
     {
     }
 
+    /**
+     * Prevents serialized data from creating another database instance.
+     */
     public function __wakeup(): never
     {
         throw new \LogicException('Database cannot be unserialized.');
     }
 
+    /**
+     * Returns the shared database wrapper, creating it on first access.
+     */
     public static function instance(string $databasePath): self
     {
         return self::$instance ??= new self($databasePath);
     }
 
+    /**
+     * Returns the shared PDO connection, opening SQLite on first access.
+     */
     public function connection(): PDO
     {
         if ($this->connection === null) {

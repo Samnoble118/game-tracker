@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+/**
+ * Verifies collection use cases through an in-memory repository.
+ */
+
 namespace GameTracker\Tests\Unit\Application;
 
 use GameTracker\Application\Service\GameLibrary;
@@ -9,8 +13,14 @@ use GameTracker\Domain\Enum\GameStatus;
 use GameTracker\Tests\Support\InMemoryGameRepository;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Covers adding and editing games through the application service.
+ */
 final class GameLibraryTest extends TestCase
 {
+    /**
+     * Confirms persisted game details can be updated as one operation.
+     */
     public function test_it_adds_and_updates_a_game(): void
     {
         $library = new GameLibrary(new InMemoryGameRepository());

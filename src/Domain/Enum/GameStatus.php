@@ -2,8 +2,15 @@
 
 declare(strict_types=1);
 
+/**
+ * Defines the lifecycle states available to games in a collection.
+ */
+
 namespace GameTracker\Domain\Enum;
 
+/**
+ * Represents a player's current relationship with a game.
+ */
 enum GameStatus: string
 {
     case Backlog = 'backlog';

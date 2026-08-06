@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+/**
+ * Renders the add/edit form and the current game collection.
+ */
+
 use GameTracker\Domain\Entity\Game;
 use GameTracker\Domain\Enum\GameStatus;
 
-/** @var list<Game> $games */
-/** @var list<GameStatus> $statuses */
+/** @var list<Game> $games Games available for display. */
+/** @var list<GameStatus> $statuses Status options for the form. */
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 ?>
