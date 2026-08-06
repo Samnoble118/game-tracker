@@ -69,10 +69,13 @@ final class SqliteGameRepositoryTest extends TestCase
         );
 
         $repository->save($game);
+        $game->updateCoverImage('metroid.webp');
+        $repository->save($game);
         $stored = $repository->find($game->id(), 1);
 
         self::assertNotNull($stored);
         self::assertSame(CollectionType::Wishlist, $stored->collectionType());
+        self::assertSame('metroid.webp', $stored->coverImage());
     }
 
     /**

@@ -13,6 +13,7 @@ use GameTracker\Application\Http\TrophyController;
 use GameTracker\Application\Service\Authenticator;
 use GameTracker\Application\Service\DashboardCustomizer;
 use GameTracker\Application\Service\GameLibrary;
+use GameTracker\Application\Service\GameCoverManager;
 use GameTracker\Application\Service\TrophyCabinet;
 use GameTracker\Core\Database;
 use GameTracker\Core\Http\CsrfToken;
@@ -37,6 +38,7 @@ $userRepository = new SqliteUserRepository($connection);
 $gameRepository = new SqliteGameRepository($connection);
 $auth = new Authenticator($userRepository);
 $customizer = new DashboardCustomizer($userRepository, $root . '/storage/uploads');
+$coverManager = new GameCoverManager($gameRepository, $root . '/storage/covers');
 $csrf = new CsrfToken();
 $authController = new AuthController($auth, $gameRepository, $csrf, $root . '/templates/auth/form.php');
 $route = (string) ($_GET['route'] ?? '');
@@ -63,6 +65,8 @@ if ($currentUser === null) {
     return;
 }
 
+$library = new GameLibrary($gameRepository, $currentUser->id());
+
 if ($route === 'account') {
     $accountController = new AccountController(
         $auth,
@@ -88,7 +92,20 @@ if ($route === 'dashboard-image') {
     return;
 }
 
-$library = new GameLibrary($gameRepository, $currentUser->id());
+if ($route === 'game-cover') {
+    $coverGame = $library->find((int) ($_GET['id'] ?? 0));
+    $coverPath = $coverGame === null ? null : $coverManager->pathFor($coverGame);
+    if ($coverPath === null) {
+        http_response_code(404);
+        return;
+    }
+
+    header('Content-Type: ' . (new finfo(FILEINFO_MIME_TYPE))->file($coverPath));
+    header('Cache-Control: private, no-cache');
+    header('X-Content-Type-Options: nosniff');
+    readfile($coverPath);
+    return;
+}
 
 if (isset($_GET['trophies']) || isset($_POST['game_id'])) {
     $trophyController = new TrophyController(
@@ -107,6 +124,7 @@ $controller = new GameController(
     $csrf,
     $root . '/templates/games/index.php',
     $currentUser,
+    $coverManager,
 );
 
-$controller->handle($_SERVER, $_GET, $_POST);
+$controller->handle($_SERVER, $_GET, $_POST, $_FILES);

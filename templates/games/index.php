@@ -24,6 +24,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Game Tracker</title>
     <link rel="stylesheet" href="/assets/app.css">
+    <script src="/assets/app.js" defer></script>
 </head>
 <body class="<?= $currentUser->dashboardImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->dashboardImageMode()) : '' ?>" style="<?= $currentUser->dashboardImage() !== null ? '--dashboard-image: url(\'/?route=dashboard-image\'); --dashboard-overlay: ' . ($currentUser->dashboardOverlay() / 100) : '' ?>">
     <header class="site-header dashboard-header">
@@ -52,12 +53,33 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
 
     <nav class="collection-tabs" aria-label="Game collections">
         <?php foreach ($viewTitles as $view => $title): ?>
-            <a href="/?view=<?= $view ?>" class="collection-tab <?= $activeView === $view ? 'is-active' : '' ?>" <?= $activeView === $view ? 'aria-current="page"' : '' ?>>
+            <?php $viewUrl = '/?' . http_build_query([...$filterQuery, 'view' => $view]); ?>
+            <a href="<?= $escape($viewUrl) ?>" class="collection-tab <?= $activeView === $view ? 'is-active' : '' ?>" <?= $activeView === $view ? 'aria-current="page"' : '' ?>>
                 <span><?= $escape($title) ?></span>
                 <strong><?= $counts[$view] ?></strong>
             </a>
         <?php endforeach; ?>
     </nav>
+
+    <section class="library-tools" aria-label="Filter game collection">
+        <form class="search-form" method="get" action="/" data-live-search>
+            <input type="hidden" name="view" value="<?= $escape($activeView) ?>">
+            <input type="hidden" name="platform" value="<?= $escape($activePlatform) ?>">
+            <label class="search-field"><span class="visually-hidden">Search games</span><input type="search" name="q" value="<?= $escape($search) ?>" placeholder="Search by game or platform…"></label>
+            <label class="status-filter"><span class="visually-hidden">Filter by status</span><select name="status">
+                <option value="all">Any status</option>
+                <?php foreach ($statuses as $status): ?><option value="<?= $status->value ?>" <?= $statusFilter === $status->value ? 'selected' : '' ?>><?= ucfirst($status->value) ?></option><?php endforeach; ?>
+            </select></label>
+            <button class="filter-button" type="submit">Search</button>
+            <button class="reset-filter" type="button" data-reset-filters>Reset</button>
+        </form>
+        <nav class="platform-tabs" aria-label="Console families">
+            <?php foreach ($platformGroups as $platformKey => $platformTitle): ?>
+                <?php $platformUrl = '/?' . http_build_query([...$filterQuery, 'platform' => $platformKey]); ?>
+                <a href="<?= $escape($platformUrl) ?>" class="platform-tab <?= $activePlatform === $platformKey ? 'is-active' : '' ?>" <?= $activePlatform === $platformKey ? 'aria-current="page"' : '' ?>><?= $escape($platformTitle) ?><strong><?= $platformCounts[$platformKey] ?></strong></a>
+            <?php endforeach; ?>
+        </nav>
+    </section>
 
     <main class="layout">
         <section class="panel form-panel" aria-labelledby="game-form-title">
@@ -83,7 +105,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                 <div class="alert alert-success" role="status">Game saved successfully.</div>
             <?php endif; ?>
 
-            <form method="post" action="/" class="game-form">
+            <form method="post" action="/" class="game-form" enctype="multipart/form-data">
                 <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
                 <input type="hidden" name="id" value="<?= $escape($form['id']) ?>">
                 <input type="hidden" name="view" value="<?= $escape($activeView) ?>">
@@ -127,17 +149,28 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                     </label>
                 </div>
 
+                <?php if ($editingGame !== null): ?>
+                    <div class="cover-editor">
+                        <label><span>Game cover</span><input type="file" name="cover_image" accept="image/jpeg,image/png,image/webp"></label>
+                        <p class="field-help">JPEG, PNG, or WebP, up to 5 MB.</p>
+                        <?php if ($editingGame->coverImage() !== null): ?>
+                            <label class="checkbox-label"><input type="checkbox" name="cover_action" value="remove"><span>Remove current cover</span></label>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
                 <button class="primary-button" type="submit">
                     <?= $form['id'] === '' ? 'Add to collection' : 'Save changes' ?>
                 </button>
             </form>
         </section>
 
-        <section class="panel collection-panel" aria-labelledby="collection-title">
+        <section class="panel collection-panel" aria-labelledby="collection-title" aria-live="polite">
             <div class="panel-heading">
                 <div>
                     <p class="eyebrow">Dashboard view</p>
-                    <h2 id="collection-title"><?= $escape($viewTitles[$activeView]) ?></h2>
+                    <h2 id="collection-title"><?= $escape($viewTitles[$activeView]) ?><?php if ($activePlatform !== 'all'): ?> · <?= $escape($platformGroups[$activePlatform]) ?><?php endif; ?></h2>
+                    <p class="result-count"><?= $totalResults ?> <?= $totalResults === 1 ? 'game' : 'games' ?> found · page <?= $currentPage ?> of <?= $totalPages ?></p>
                 </div>
             </div>
 
@@ -145,38 +178,47 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                 <div class="empty-state">
                     <span aria-hidden="true">＋</span>
                     <h3>No games here yet</h3>
-                    <p>Add a game or choose another collection tab.</p>
+                    <p><?= $search !== '' || $activePlatform !== 'all' || $statusFilter !== 'all' ? 'Try adjusting or clearing your filters.' : 'Add a game or choose another collection tab.' ?></p>
                 </div>
             <?php else: ?>
                 <div class="game-list">
                     <?php foreach ($games as $game): ?>
                         <article class="game-card">
-                            <div class="game-card-topline">
-                                <div class="card-badges">
-                                    <span class="collection-badge collection-<?= $game->collectionType()->value ?>">
-                                        <?= ucfirst($game->collectionType()->value) ?>
-                                    </span>
-                                    <span class="status status-<?= $game->status()->value ?>">
-                                        <?= ucfirst($game->status()->value) ?>
-                                    </span>
+                            <div class="game-cover <?= $game->coverImage() === null ? 'is-placeholder' : '' ?>">
+                                <?php if ($game->coverImage() !== null): ?>
+                                    <img src="/?route=game-cover&amp;id=<?= $game->id() ?>" alt="<?= $escape($game->title()) ?> cover">
+                                <?php else: ?>
+                                    <span aria-hidden="true"><?= strtoupper(substr($game->title(), 0, 1)) ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="game-card-content">
+                                <div class="game-card-topline">
+                                    <div class="card-badges">
+                                        <span class="collection-badge collection-<?= $game->collectionType()->value ?>">
+                                            <?= ucfirst($game->collectionType()->value) ?>
+                                        </span>
+                                        <span class="status status-<?= $game->status()->value ?>">
+                                            <?= ucfirst($game->status()->value) ?>
+                                        </span>
+                                    </div>
+                                    <a class="text-link" href="/?view=<?= $activeView ?>&amp;edit=<?= $game->id() ?>">Edit</a>
                                 </div>
-                                <a class="text-link" href="/?view=<?= $activeView ?>&amp;edit=<?= $game->id() ?>">Edit</a>
+                                <h3><?= $escape($game->title()) ?></h3>
+                                <p class="platform"><?= $escape($game->platform()) ?></p>
+                                <div class="progress-label"><span>Progress</span><strong><?= $game->progress() ?>%</strong></div>
+                                <div class="progress-track" aria-label="<?= $game->progress() ?>% complete"><span style="width: <?= $game->progress() ?>%"></span></div>
+                                <?php if ($game->supportsTrophies()): ?><a class="trophy-link" href="/?trophies=<?= $game->id() ?>">Manage trophies <span aria-hidden="true">→</span></a><?php endif; ?>
                             </div>
-                            <h3><?= $escape($game->title()) ?></h3>
-                            <p class="platform"><?= $escape($game->platform()) ?></p>
-                            <div class="progress-label">
-                                <span>Progress</span>
-                                <strong><?= $game->progress() ?>%</strong>
-                            </div>
-                            <div class="progress-track" aria-label="<?= $game->progress() ?>% complete">
-                                <span style="width: <?= $game->progress() ?>%"></span>
-                            </div>
-                            <?php if ($game->supportsTrophies()): ?>
-                                <a class="trophy-link" href="/?trophies=<?= $game->id() ?>">Manage trophies <span aria-hidden="true">→</span></a>
-                            <?php endif; ?>
                         </article>
                     <?php endforeach; ?>
                 </div>
+                <?php if ($totalPages > 1): ?>
+                    <nav class="pagination" aria-label="Game pages">
+                        <?php if ($currentPage > 1): ?><a href="/?<?= $escape(http_build_query([...$filterQuery, 'page' => $currentPage - 1])) ?>">← Previous</a><?php endif; ?>
+                        <span>Page <?= $currentPage ?> of <?= $totalPages ?></span>
+                        <?php if ($currentPage < $totalPages): ?><a href="/?<?= $escape(http_build_query([...$filterQuery, 'page' => $currentPage + 1])) ?>">Next →</a><?php endif; ?>
+                    </nav>
+                <?php endif; ?>
             <?php endif; ?>
         </section>
     </main>

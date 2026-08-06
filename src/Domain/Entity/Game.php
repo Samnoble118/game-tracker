@@ -28,6 +28,7 @@ final class Game
         private int $progress = 0,
         private ?int $id = null,
         private CollectionType $collectionType = CollectionType::Owned,
+        private ?string $coverImage = null,
     ) {
         $this->updateDetails($this->title, $this->platform);
         $this->setProgress($this->progress);
@@ -87,6 +88,18 @@ final class Game
     public function collectionType(): CollectionType
     {
         return $this->collectionType;
+    }
+
+    /** Returns the private cover-image filename, when one has been uploaded. */
+    public function coverImage(): ?string
+    {
+        return $this->coverImage;
+    }
+
+    /** Replaces or removes the cover-image filename. */
+    public function updateCoverImage(?string $coverImage): void
+    {
+        $this->coverImage = $coverImage;
     }
 
     /**
