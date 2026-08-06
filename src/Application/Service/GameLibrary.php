@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace GameTracker\Application\Service;
 
 use GameTracker\Domain\Entity\Game;
+use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\GameStatus;
 use GameTracker\Domain\Repository\GameRepository;
 
@@ -32,9 +33,10 @@ final readonly class GameLibrary
         string $platform,
         GameStatus $status = GameStatus::Backlog,
         int $progress = 0,
+        CollectionType $collectionType = CollectionType::Owned,
     ): Game
     {
-        $game = new Game($title, $platform, $status, $progress);
+        $game = new Game($title, $platform, $status, $progress, collectionType: $collectionType);
         $this->games->save($game);
 
         return $game;
@@ -67,6 +69,7 @@ final readonly class GameLibrary
         string $platform,
         GameStatus $status,
         int $progress,
+        CollectionType $collectionType = CollectionType::Owned,
     ): ?Game {
         $game = $this->games->find($id);
 
@@ -77,6 +80,7 @@ final readonly class GameLibrary
         $game->updateDetails($title, $platform);
         $game->updateStatus($status);
         $game->setProgress($progress);
+        $game->updateCollectionType($collectionType);
         $this->games->save($game);
 
         return $game;

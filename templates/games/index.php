@@ -7,9 +7,12 @@ declare(strict_types=1);
  */
 
 use GameTracker\Domain\Entity\Game;
+use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\GameStatus;
 
 /** @var list<Game> $games Games available for display. */
+/** @var list<Game> $allGames Complete collection used for summary counts. */
+/** @var list<CollectionType> $collectionTypes Collection options for the form. */
 /** @var list<GameStatus> $statuses Status options for the form. */
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
@@ -30,10 +33,19 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
             <p class="lede">Keep every platform, playthrough, and percentage in one place.</p>
         </div>
         <div class="summary" aria-label="Collection summary">
-            <strong><?= count($games) ?></strong>
-            <span><?= count($games) === 1 ? 'game' : 'games' ?></span>
+            <strong><?= count($allGames) ?></strong>
+            <span><?= count($allGames) === 1 ? 'game' : 'games' ?></span>
         </div>
     </header>
+
+    <nav class="collection-tabs" aria-label="Game collections">
+        <?php foreach ($viewTitles as $view => $title): ?>
+            <a href="/?view=<?= $view ?>" class="collection-tab <?= $activeView === $view ? 'is-active' : '' ?>" <?= $activeView === $view ? 'aria-current="page"' : '' ?>>
+                <span><?= $escape($title) ?></span>
+                <strong><?= $counts[$view] ?></strong>
+            </a>
+        <?php endforeach; ?>
+    </nav>
 
     <main class="layout">
         <section class="panel form-panel" aria-labelledby="game-form-title">
@@ -43,7 +55,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                     <h2 id="game-form-title"><?= $form['id'] === '' ? 'Add a game' : 'Edit game' ?></h2>
                 </div>
                 <?php if ($form['id'] !== ''): ?>
-                    <a class="text-link" href="/">Cancel</a>
+                    <a class="text-link" href="/?view=<?= $activeView ?>">Cancel</a>
                 <?php endif; ?>
             </div>
 
@@ -62,6 +74,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
             <form method="post" action="/" class="game-form">
                 <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
                 <input type="hidden" name="id" value="<?= $escape($form['id']) ?>">
+                <input type="hidden" name="view" value="<?= $escape($activeView) ?>">
 
                 <label>
                     <span>Game title</span>
@@ -73,7 +86,18 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                     <input name="platform" value="<?= $escape($form['platform']) ?>" required maxlength="100" placeholder="e.g. PC, Switch, PS5">
                 </label>
 
-                <div class="form-row">
+                <div class="form-row form-row-three">
+                    <label>
+                        <span>Collection</span>
+                        <select name="collection_type">
+                            <?php foreach ($collectionTypes as $collectionType): ?>
+                                <option value="<?= $collectionType->value ?>" <?= $form['collection_type'] === $collectionType->value ? 'selected' : '' ?>>
+                                    <?= ucfirst($collectionType->value) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+
                     <label>
                         <span>Status</span>
                         <select name="status">
@@ -100,26 +124,31 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
         <section class="panel collection-panel" aria-labelledby="collection-title">
             <div class="panel-heading">
                 <div>
-                    <p class="eyebrow">Collection</p>
-                    <h2 id="collection-title">Your games</h2>
+                    <p class="eyebrow">Dashboard view</p>
+                    <h2 id="collection-title"><?= $escape($viewTitles[$activeView]) ?></h2>
                 </div>
             </div>
 
             <?php if ($games === []): ?>
                 <div class="empty-state">
                     <span aria-hidden="true">＋</span>
-                    <h3>Start your collection</h3>
-                    <p>Add your first game using the form.</p>
+                    <h3>No games here yet</h3>
+                    <p>Add a game or choose another collection tab.</p>
                 </div>
             <?php else: ?>
                 <div class="game-list">
                     <?php foreach ($games as $game): ?>
                         <article class="game-card">
                             <div class="game-card-topline">
-                                <span class="status status-<?= $game->status()->value ?>">
-                                    <?= ucfirst($game->status()->value) ?>
-                                </span>
-                                <a class="text-link" href="/?edit=<?= $game->id() ?>">Edit</a>
+                                <div class="card-badges">
+                                    <span class="collection-badge collection-<?= $game->collectionType()->value ?>">
+                                        <?= ucfirst($game->collectionType()->value) ?>
+                                    </span>
+                                    <span class="status status-<?= $game->status()->value ?>">
+                                        <?= ucfirst($game->status()->value) ?>
+                                    </span>
+                                </div>
+                                <a class="text-link" href="/?view=<?= $activeView ?>&amp;edit=<?= $game->id() ?>">Edit</a>
                             </div>
                             <h3><?= $escape($game->title()) ?></h3>
                             <p class="platform"><?= $escape($game->platform()) ?></p>
