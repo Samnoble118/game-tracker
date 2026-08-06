@@ -18,7 +18,10 @@ final class InMemoryUserRepository implements UserRepository
 
     public function save(User $user): void
     {
-        $user->assignId(count($this->users) + 1);
+        if ($user->id() === null) {
+            $user->assignId(count($this->users) + 1);
+        }
+
         $this->users[$user->id()] = $user;
     }
 
@@ -31,6 +34,17 @@ final class InMemoryUserRepository implements UserRepository
     {
         foreach ($this->users as $user) {
             if (strcasecmp($user->email(), trim($email)) === 0) {
+                return $user;
+            }
+        }
+
+        return null;
+    }
+
+    public function findByUsername(string $username): ?User
+    {
+        foreach ($this->users as $user) {
+            if ($user->username() !== null && strcasecmp($user->username(), trim($username)) === 0) {
                 return $user;
             }
         }

@@ -74,6 +74,52 @@ final readonly class Authenticator
         session_destroy();
     }
 
+    public function updateProfile(User $user, ?string $username, string $email, string $currentPassword): void
+    {
+        if (!password_verify($currentPassword, $user->passwordHash())) {
+            throw new InvalidArgumentException('The current password is incorrect.');
+        }
+
+        $emailOwner = $this->users->findByEmail($email);
+        if ($emailOwner !== null && $emailOwner->id() !== $user->id()) {
+            throw new InvalidArgumentException('That email address is already registered.');
+        }
+
+        if ($username !== null && trim($username) !== '') {
+            $usernameOwner = $this->users->findByUsername($username);
+            if ($usernameOwner !== null && $usernameOwner->id() !== $user->id()) {
+                throw new InvalidArgumentException('That username is already taken.');
+            }
+        }
+
+        $user->updateEmail($email);
+        $user->updateUsername($username);
+        $this->users->save($user);
+    }
+
+    public function updatePassword(
+        User $user,
+        string $currentPassword,
+        string $newPassword,
+        string $confirmation,
+    ): void {
+        if (!password_verify($currentPassword, $user->passwordHash())) {
+            throw new InvalidArgumentException('The current password is incorrect.');
+        }
+
+        if ($newPassword !== $confirmation) {
+            throw new InvalidArgumentException('The new password confirmation does not match.');
+        }
+
+        if (strlen($newPassword) < 10) {
+            throw new InvalidArgumentException('The new password must contain at least 10 characters.');
+        }
+
+        $user->updatePasswordHash(password_hash($newPassword, PASSWORD_DEFAULT));
+        $this->users->save($user);
+        session_regenerate_id(true);
+    }
+
     private function startSession(User $user): void
     {
         session_regenerate_id(true);

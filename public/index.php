@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 use GameTracker\Application\Http\AuthController;
+use GameTracker\Application\Http\AccountController;
 use GameTracker\Application\Http\GameController;
 use GameTracker\Application\Http\TrophyController;
 use GameTracker\Application\Service\Authenticator;
@@ -57,6 +58,16 @@ $currentUser = $auth->currentUser();
 
 if ($currentUser === null) {
     header('Location: /?route=login', true, 303);
+    return;
+}
+
+if ($route === 'account') {
+    $accountController = new AccountController(
+        $auth,
+        $csrf,
+        $root . '/templates/account/index.php',
+    );
+    $accountController->handle($currentUser, $_SERVER, $_GET, $_POST);
     return;
 }
 
