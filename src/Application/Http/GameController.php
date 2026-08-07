@@ -292,7 +292,7 @@ final readonly class GameController
         $platform = strtolower($platform);
         $matches = match ($group) {
             'playstation' => str_contains($platform, 'ps') || str_contains($platform, 'playstation'),
-            'nintendo' => preg_match('/switch|nintendo|gamecube|gameboy|\bwii\b|\b3ds\b|\bds\b/', $platform) === 1,
+            'nintendo' => preg_match('/switch|nintendo|gamecube|gameboy|\bgba\b|\bwii\b|\b3ds\b|\bds\b/', $platform) === 1,
             'sega' => preg_match('/sega|dreamcast|saturn|mega drive|game gear/', $platform) === 1,
             'xbox' => str_contains($platform, 'xbox'),
             'pc' => preg_match('/\bpc\b|steam/', $platform) === 1,
