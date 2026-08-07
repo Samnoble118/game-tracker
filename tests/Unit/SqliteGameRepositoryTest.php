@@ -10,6 +10,7 @@ namespace GameTracker\Tests\Unit;
 
 use GameTracker\Domain\Entity\Game;
 use GameTracker\Domain\Enum\CollectionType;
+use GameTracker\Domain\Enum\GameStatus;
 use GameTracker\Infrastructure\Persistence\SqliteGameRepository;
 use GameTracker\Infrastructure\Persistence\SqliteTrophyRepository;
 use GameTracker\Domain\Entity\Trophy;
@@ -114,5 +115,25 @@ final class SqliteGameRepositoryTest extends TestCase
         self::assertCount(1, $repository->all(1));
         self::assertSame('Astro Bot', $repository->all(1)[0]->title());
         self::assertNull($repository->find(2, 1));
+    }
+
+    /** Confirms filtering, counting, and pagination are performed by the repository. */
+    public function test_it_queries_a_bounded_filtered_page(): void
+    {
+        $connection = new PDO('sqlite::memory:');
+        $connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        $repository = new SqliteGameRepository($connection);
+        $repository->save(new Game('Astro Bot', 'PS5', 1, GameStatus::Completed, 100));
+        $repository->save(new Game('God of War', 'PS4', 1, GameStatus::Playing, 25));
+        $repository->save(new Game('Zelda', 'Nintendo Switch', 1, GameStatus::Completed, 100));
+        $repository->save(new Game('Private Game', 'PS5', 2, GameStatus::Completed, 100));
+
+        $page = $repository->page(1, 'completed', '', 'playstation', 'all', 1, 0);
+
+        self::assertCount(1, $page);
+        self::assertSame('Astro Bot', $page[0]->title());
+        self::assertSame(1, $repository->count(1, 'completed', '', 'playstation', 'all'));
+        self::assertSame(2, $repository->viewCounts(1)['completed']);
+        self::assertSame(2, $repository->platformCounts(1, 'all')['playstation']);
     }
 }

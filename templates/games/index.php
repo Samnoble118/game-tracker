@@ -11,7 +11,7 @@ use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\GameStatus;
 
 /** @var list<Game> $games Games available for display. */
-/** @var list<Game> $allGames Complete collection used for summary counts. */
+/** @var int $totalGames Total number of games owned by the current user. */
 /** @var list<CollectionType> $collectionTypes Collection options for the form. */
 /** @var list<GameStatus> $statuses Status options for the form. */
 
@@ -34,8 +34,8 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
             <p class="lede">Keep every platform, playthrough, and percentage in one place.</p>
         </div>
         <div class="summary" aria-label="Collection summary">
-            <strong><?= count($allGames) ?></strong>
-            <span><?= count($allGames) === 1 ? 'game' : 'games' ?></span>
+            <strong><?= $totalGames ?></strong>
+            <span><?= $totalGames === 1 ? 'game' : 'games' ?></span>
         </div>
     </header>
 
