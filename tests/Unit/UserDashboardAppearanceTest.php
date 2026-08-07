@@ -35,4 +35,17 @@ final class UserDashboardAppearanceTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $user->updateDashboardAppearance(null, 'unknown', 55);
     }
+
+    /** Confirms merchandise artwork remains independent from game artwork. */
+    public function test_it_updates_merchandise_appearance_independently(): void
+    {
+        $user = new User('player@example.com', 'hash', dashboardImage: 'games.webp');
+
+        $user->updateMerchandiseAppearance('merchandise.webp', 'banner', 60);
+
+        self::assertSame('games.webp', $user->dashboardImage());
+        self::assertSame('merchandise.webp', $user->merchandiseImage());
+        self::assertSame('banner', $user->merchandiseImageMode());
+        self::assertSame(60, $user->merchandiseOverlay());
+    }
 }

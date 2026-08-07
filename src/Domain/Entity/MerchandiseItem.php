@@ -10,6 +10,7 @@ namespace GameTracker\Domain\Entity;
 
 use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\MerchandiseCategory;
+use GameTracker\Domain\Enum\MerchandisePackaging;
 use InvalidArgumentException;
 
 /** Represents one owned or wished-for physical collectible. */
@@ -21,12 +22,13 @@ final class MerchandiseItem
         private string $franchise,
         private MerchandiseCategory $category,
         private readonly int $userId,
+        private MerchandisePackaging $packaging = MerchandisePackaging::Loose,
         private CollectionType $collectionType = CollectionType::Owned,
         private int $quantity = 1,
         private string $notes = '',
         private ?int $id = null,
     ) {
-        $this->updateDetails($name, $franchise, $category, $collectionType, $quantity, $notes);
+        $this->updateDetails($name, $franchise, $category, $packaging, $collectionType, $quantity, $notes);
     }
 
     /** Returns the persisted identifier or null for a new item. */
@@ -40,6 +42,9 @@ final class MerchandiseItem
 
     /** Returns the merchandise category. */
     public function category(): MerchandiseCategory { return $this->category; }
+
+    /** Returns how the collectible is packaged or displayed. */
+    public function packaging(): MerchandisePackaging { return $this->packaging; }
 
     /** Returns the user who owns the collection entry. */
     public function userId(): int { return $this->userId; }
@@ -58,6 +63,7 @@ final class MerchandiseItem
         string $name,
         string $franchise,
         MerchandiseCategory $category,
+        MerchandisePackaging $packaging,
         CollectionType $collectionType,
         int $quantity,
         string $notes,
@@ -73,6 +79,7 @@ final class MerchandiseItem
         $this->name = $name;
         $this->franchise = trim($franchise);
         $this->category = $category;
+        $this->packaging = $packaging;
         $this->collectionType = $collectionType;
         $this->quantity = $quantity;
         $this->notes = trim($notes);

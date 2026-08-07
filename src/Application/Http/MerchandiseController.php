@@ -11,8 +11,10 @@ namespace GameTracker\Application\Http;
 use GameTracker\Application\Service\MerchandiseCollection;
 use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Domain\Entity\MerchandiseItem;
+use GameTracker\Domain\Entity\User;
 use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\MerchandiseCategory;
+use GameTracker\Domain\Enum\MerchandisePackaging;
 use InvalidArgumentException;
 use ValueError;
 
@@ -20,7 +22,7 @@ use ValueError;
 final readonly class MerchandiseController
 {
     /** Creates the controller with collection, security, and template dependencies. */
-    public function __construct(private MerchandiseCollection $collection, private CsrfToken $csrf, private string $templatePath) {}
+    public function __construct(private MerchandiseCollection $collection, private CsrfToken $csrf, private string $templatePath, private User $currentUser) {}
 
     /** Processes merchandise requests and renders the physical collection. @param array<string,mixed> $server @param array<string,mixed> $query @param array<string,mixed> $input */
     public function handle(array $server, array $query, array $input): void
@@ -44,24 +46,32 @@ final readonly class MerchandiseController
         $search = trim((string) ($query['q'] ?? ''));
         $activeCategory = (string) ($query['category'] ?? 'all');
         $activeCollection = (string) ($query['collection'] ?? 'all');
+        $activePackaging = (string) ($query['packaging'] ?? 'all');
         $validCategories = array_map(static fn (MerchandiseCategory $category): string => $category->value, MerchandiseCategory::cases());
         if ($activeCategory !== 'all' && !in_array($activeCategory, $validCategories, true)) $activeCategory = 'all';
         if (!in_array($activeCollection, ['all', 'owned', 'wishlist'], true)) $activeCollection = 'all';
+        $validPackaging = array_map(static fn (MerchandisePackaging $packaging): string => $packaging->value, MerchandisePackaging::cases());
+        if ($activePackaging !== 'all' && !in_array($activePackaging, $validPackaging, true)) $activePackaging = 'all';
         $items = array_values(array_filter($allItems, static fn (MerchandiseItem $item): bool =>
             ($search === '' || stripos($item->name(), $search) !== false || stripos($item->franchise(), $search) !== false)
             && ($activeCategory === 'all' || $item->category()->value === $activeCategory)
             && ($activeCollection === 'all' || $item->collectionType()->value === $activeCollection)
+            && ($activePackaging === 'all' || $item->packaging()->value === $activePackaging)
         ));
         $categories = MerchandiseCategory::cases();
+        $packagingOptions = MerchandisePackaging::cases();
         $collectionTypes = CollectionType::cases();
         $counts = ['all' => count($allItems), 'owned' => 0, 'wishlist' => 0];
         $categoryCounts = ['all' => count($allItems)];
+        $packagingCounts = ['all' => count($allItems)];
         foreach ($allItems as $item) {
             $counts[$item->collectionType()->value]++;
             $categoryCounts[$item->category()->value] = ($categoryCounts[$item->category()->value] ?? 0) + 1;
+            $packagingCounts[$item->packaging()->value] = ($packagingCounts[$item->packaging()->value] ?? 0) + 1;
         }
         $csrfToken = $this->csrf->value();
         $saved = isset($query['saved']);
+        $currentUser = $this->currentUser;
         require $this->templatePath;
     }
 
@@ -71,6 +81,7 @@ final readonly class MerchandiseController
         $form = [
             'id' => trim((string) ($input['id'] ?? '')), 'name' => trim((string) ($input['name'] ?? '')),
             'franchise' => trim((string) ($input['franchise'] ?? '')), 'category' => trim((string) ($input['category'] ?? 'other')),
+            'packaging' => trim((string) ($input['packaging'] ?? 'loose')),
             'collection_type' => trim((string) ($input['collection_type'] ?? 'owned')),
             'quantity' => trim((string) ($input['quantity'] ?? '1')), 'notes' => trim((string) ($input['notes'] ?? '')),
         ];
@@ -78,7 +89,7 @@ final readonly class MerchandiseController
         try {
             $quantity = filter_var($form['quantity'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 999]]);
             if ($quantity === false) throw new InvalidArgumentException('Quantity must be between 1 and 999.');
-            $arguments = [$form['name'], $form['franchise'], MerchandiseCategory::from($form['category']), CollectionType::from($form['collection_type']), $quantity, $form['notes']];
+            $arguments = [$form['name'], $form['franchise'], MerchandiseCategory::from($form['category']), MerchandisePackaging::from($form['packaging']), CollectionType::from($form['collection_type']), $quantity, $form['notes']];
             $item = $form['id'] === '' ? $this->collection->add(...$arguments) : $this->collection->update((int) $form['id'], ...$arguments);
             if ($item === null) throw new InvalidArgumentException('That merchandise item could not be found.');
         } catch (InvalidArgumentException|ValueError $exception) {
@@ -88,11 +99,11 @@ final readonly class MerchandiseController
     }
 
     /** Returns blank merchandise form values. @return array<string,string> */
-    private function emptyForm(): array { return ['id'=>'','name'=>'','franchise'=>'','category'=>'action-figure','collection_type'=>'owned','quantity'=>'1','notes'=>'']; }
+    private function emptyForm(): array { return ['id'=>'','name'=>'','franchise'=>'','category'=>'action-figure','packaging'=>'loose','collection_type'=>'owned','quantity'=>'1','notes'=>'']; }
 
     /** Converts an existing item into editable form values. @return array<string,string> */
     private function formFor(MerchandiseItem $item): array
     {
-        return ['id'=>(string)$item->id(),'name'=>$item->name(),'franchise'=>$item->franchise(),'category'=>$item->category()->value,'collection_type'=>$item->collectionType()->value,'quantity'=>(string)$item->quantity(),'notes'=>$item->notes()];
+        return ['id'=>(string)$item->id(),'name'=>$item->name(),'franchise'=>$item->franchise(),'category'=>$item->category()->value,'packaging'=>$item->packaging()->value,'collection_type'=>$item->collectionType()->value,'quantity'=>(string)$item->quantity(),'notes'=>$item->notes()];
     }
 }

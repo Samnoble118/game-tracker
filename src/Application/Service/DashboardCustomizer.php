@@ -30,7 +30,7 @@ final readonly class DashboardCustomizer
         $filename = $user->dashboardImage();
 
         if ($upload !== null && (int) ($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-            $filename = $this->storeUpload($user, $upload);
+            $filename = $this->storeUpload($user, $upload, 'dashboard');
         }
 
         $user->updateDashboardAppearance($filename, $mode, $overlay);
@@ -45,10 +45,40 @@ final readonly class DashboardCustomizer
         $this->users->save($user);
     }
 
+    /** Updates merchandise artwork and safely stores an optional replacement image. @param array<string, mixed>|null $upload */
+    public function updateMerchandise(User $user, string $mode, int $overlay, ?array $upload): void
+    {
+        $filename = $user->merchandiseImage();
+        if ($upload !== null && (int) ($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            $filename = $this->storeUpload($user, $upload, 'merchandise');
+        }
+        $user->updateMerchandiseAppearance($filename, $mode, $overlay);
+        $this->users->save($user);
+    }
+
+    /** Removes custom merchandise artwork and restores its defaults. */
+    public function removeMerchandise(User $user): void
+    {
+        $this->deleteMerchandiseExisting($user);
+        $user->updateMerchandiseAppearance(null, 'banner', 55);
+        $this->users->save($user);
+    }
+
     /** Resolves a safe private artwork path for the supplied user. */
     public function pathFor(User $user): ?string
     {
-        $filename = $user->dashboardImage();
+        return $this->pathForFilename($user->dashboardImage());
+    }
+
+    /** Resolves the private merchandise artwork path for the supplied user. */
+    public function merchandisePathFor(User $user): ?string
+    {
+        return $this->pathForFilename($user->merchandiseImage());
+    }
+
+    /** Resolves a safe private path for a stored artwork filename. */
+    private function pathForFilename(?string $filename): ?string
+    {
         if ($filename === null || basename($filename) !== $filename) {
             return null;
         }
@@ -58,7 +88,7 @@ final readonly class DashboardCustomizer
     }
 
     /** @param array<string, mixed> $upload */
-    private function storeUpload(User $user, array $upload): string
+    private function storeUpload(User $user, array $upload, string $target): string
     {
         $error = (int) ($upload['error'] ?? UPLOAD_ERR_NO_FILE);
         if ($error !== UPLOAD_ERR_OK) {
@@ -81,8 +111,8 @@ final readonly class DashboardCustomizer
             throw new InvalidArgumentException('The upload directory is unavailable.');
         }
 
-        $this->deleteExisting($user);
-        $filename = sprintf('user-%d-%s.%s', $user->id(), bin2hex(random_bytes(12)), $extensions[$mime]);
+        $target === 'merchandise' ? $this->deleteMerchandiseExisting($user) : $this->deleteExisting($user);
+        $filename = sprintf('user-%d-%s-%s.%s', $user->id(), $target, bin2hex(random_bytes(12)), $extensions[$mime]);
         if (!move_uploaded_file($temporaryPath, $this->uploadPath . '/' . $filename)) {
             throw new InvalidArgumentException('The image could not be saved.');
         }
@@ -94,6 +124,15 @@ final readonly class DashboardCustomizer
     private function deleteExisting(User $user): void
     {
         $path = $this->pathFor($user);
+        if ($path !== null) {
+            unlink($path);
+        }
+    }
+
+    /** Deletes the user's previous merchandise artwork file when it exists. */
+    private function deleteMerchandiseExisting(User $user): void
+    {
+        $path = $this->merchandisePathFor($user);
         if ($path !== null) {
             unlink($path);
         }

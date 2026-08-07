@@ -11,6 +11,7 @@ namespace GameTracker\Application\Service;
 use GameTracker\Domain\Entity\MerchandiseItem;
 use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\MerchandiseCategory;
+use GameTracker\Domain\Enum\MerchandisePackaging;
 use GameTracker\Domain\Repository\MerchandiseRepository;
 
 /** Coordinates merchandise entities and user-scoped persistence. */
@@ -20,21 +21,21 @@ final readonly class MerchandiseCollection
     public function __construct(private MerchandiseRepository $items, private int $userId) {}
 
     /** Adds a new physical collectible. */
-    public function add(string $name, string $franchise, MerchandiseCategory $category, CollectionType $type, int $quantity, string $notes): MerchandiseItem
+    public function add(string $name, string $franchise, MerchandiseCategory $category, MerchandisePackaging $packaging, CollectionType $type, int $quantity, string $notes): MerchandiseItem
     {
-        $item = new MerchandiseItem($name, $franchise, $category, $this->userId, $type, $quantity, $notes);
+        $item = new MerchandiseItem($name, $franchise, $category, $this->userId, $packaging, $type, $quantity, $notes);
         $this->items->save($item);
         return $item;
     }
 
     /** Updates an existing physical collectible when it belongs to the user. */
-    public function update(int $id, string $name, string $franchise, MerchandiseCategory $category, CollectionType $type, int $quantity, string $notes): ?MerchandiseItem
+    public function update(int $id, string $name, string $franchise, MerchandiseCategory $category, MerchandisePackaging $packaging, CollectionType $type, int $quantity, string $notes): ?MerchandiseItem
     {
         $item = $this->find($id);
         if ($item === null) {
             return null;
         }
-        $item->updateDetails($name, $franchise, $category, $type, $quantity, $notes);
+        $item->updateDetails($name, $franchise, $category, $packaging, $type, $quantity, $notes);
         $this->items->save($item);
         return $item;
     }

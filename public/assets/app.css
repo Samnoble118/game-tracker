@@ -41,7 +41,8 @@ body.has-dashboard-image.image-mode-wallpaper {
     background-attachment: fixed;
 }
 
-.image-mode-banner .dashboard-header {
+.image-mode-banner .dashboard-header,
+.image-mode-banner .merchandise-header {
     position: relative;
     isolation: isolate;
     width: min(1240px, calc(100% - 24px));

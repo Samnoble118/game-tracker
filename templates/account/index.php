@@ -92,6 +92,36 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                 </form>
             </div>
         </section>
+
+        <section class="panel appearance-panel">
+            <div class="panel-heading">
+                <div><p class="eyebrow">Personalisation</p><h2>Merchandise appearance</h2></div>
+                <p class="section-description">Choose separate artwork for your physical collection.</p>
+            </div>
+            <?php if ($section === 'merchandise-appearance' && $errors !== []): ?>
+                <div class="alert alert-error" role="alert"><?php foreach ($errors as $error): ?><p><?= $escape($error) ?></p><?php endforeach; ?></div>
+            <?php endif; ?>
+            <?php if ($saved === 'merchandise-appearance'): ?><div class="alert alert-success">Merchandise appearance updated.</div><?php endif; ?>
+            <div class="appearance-grid">
+                <div class="appearance-preview <?= $user->merchandiseImage() === null ? 'is-empty' : '' ?>" <?= $user->merchandiseImage() !== null ? 'style="--dashboard-image: url(\'/?route=merchandise-image\'); --dashboard-overlay: ' . ($user->merchandiseOverlay() / 100) . '"' : '' ?>>
+                    <?php if ($user->merchandiseImage() === null): ?><span>Your merchandise image preview will appear here</span><?php endif; ?>
+                </div>
+                <form method="post" action="/?route=account" class="game-form appearance-form" enctype="multipart/form-data">
+                    <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
+                    <input type="hidden" name="section" value="merchandise-appearance">
+                    <label><span>Choose an image</span><input type="file" name="merchandise_image" accept="image/jpeg,image/png,image/webp"></label>
+                    <p class="field-help">JPEG, PNG, or WebP, up to 5 MB.</p>
+                    <label><span>Display style</span><select name="image_mode"><option value="banner" <?= $user->merchandiseImageMode() === 'banner' ? 'selected' : '' ?>>Header banner</option><option value="wallpaper" <?= $user->merchandiseImageMode() === 'wallpaper' ? 'selected' : '' ?>>Page wallpaper</option></select></label>
+                    <label><span>Dark overlay: <output id="merchandise-overlay-output"><?= $user->merchandiseOverlay() ?>%</output></span><input type="range" name="overlay" min="20" max="90" value="<?= $user->merchandiseOverlay() ?>" oninput="document.getElementById('merchandise-overlay-output').value = this.value + '%'" /></label>
+                    <div class="appearance-actions">
+                        <button class="primary-button" type="submit">Save merchandise appearance</button>
+                        <?php if ($user->merchandiseImage() !== null): ?>
+                            <button class="danger-button" type="submit" name="appearance_action" value="remove">Remove image</button>
+                        <?php endif; ?>
+                    </div>
+                </form>
+            </div>
+        </section>
     </main>
 </body>
 </html>
