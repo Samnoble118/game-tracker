@@ -51,6 +51,11 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
         </form>
     </div>
 
+    <nav class="section-switcher" aria-label="Tracker sections">
+        <a class="is-active" href="/" aria-current="page">Games</a>
+        <a href="/?route=merchandise">Merchandise</a>
+    </nav>
+
     <nav class="collection-tabs" aria-label="Game collections">
         <?php foreach ($viewTitles as $view => $title): ?>
             <?php $viewUrl = '/?' . http_build_query([...$filterQuery, 'view' => $view]); ?>
