@@ -22,8 +22,11 @@ final class Database
     /**
      * Stores the SQLite path without opening a connection immediately.
      */
-    private function __construct(private readonly string $databasePath)
-    {
+    private function __construct(
+        private readonly string $databasePath,
+        private readonly string $queryLogPath,
+        private readonly float $slowQueryThresholdMs,
+    ) {
     }
 
     /**
@@ -44,9 +47,17 @@ final class Database
     /**
      * Returns the shared database wrapper, creating it on first access.
      */
-    public static function instance(string $databasePath): self
+    public static function instance(
+        string $databasePath,
+        ?string $queryLogPath = null,
+        float $slowQueryThresholdMs = 100.0,
+    ): self
     {
-        return self::$instance ??= new self($databasePath);
+        return self::$instance ??= new self(
+            $databasePath,
+            $queryLogPath ?? dirname($databasePath) . '/logs/database.jsonl',
+            $slowQueryThresholdMs,
+        );
     }
 
     /**
@@ -64,7 +75,14 @@ final class Database
             $this->connection = new PDO('sqlite:' . $this->databasePath, options: [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_STATEMENT_CLASS => [LoggedPDOStatement::class, [
+                    $this->queryLogPath,
+                    $this->slowQueryThresholdMs,
+                ]],
             ]);
+            $this->connection->exec('PRAGMA foreign_keys = ON');
+            $this->connection->exec('PRAGMA journal_mode = WAL');
+            $this->connection->exec('PRAGMA busy_timeout = 5000');
         }
 
         return $this->connection;

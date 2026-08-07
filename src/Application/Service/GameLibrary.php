@@ -103,4 +103,28 @@ final readonly class GameLibrary
     {
         return $this->games->all($this->userId);
     }
+
+    /** Returns one filtered page without loading the complete collection. @return list<Game> */
+    public function page(string $view, string $search, string $platform, string $status, int $limit, int $offset): array
+    {
+        return $this->games->page($this->userId, $view, $search, $platform, $status, $limit, $offset);
+    }
+
+    /** Counts games matching the active dashboard filters. */
+    public function count(string $view, string $search = '', string $platform = 'all', string $status = 'all'): int
+    {
+        return $this->games->count($this->userId, $view, $search, $platform, $status);
+    }
+
+    /** Returns badge totals for the primary collection views. */
+    public function viewCounts(): array
+    {
+        return $this->games->viewCounts($this->userId);
+    }
+
+    /** Returns platform-family totals within the active collection view. */
+    public function platformCounts(string $view): array
+    {
+        return $this->games->platformCounts($this->userId, $view);
+    }
 }

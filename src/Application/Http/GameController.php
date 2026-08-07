@@ -11,7 +11,6 @@ namespace GameTracker\Application\Http;
 use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Application\Service\GameCoverManager;
 use GameTracker\Core\Http\CsrfToken;
-use GameTracker\Domain\Entity\Game;
 use GameTracker\Domain\Entity\User;
 use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\GameStatus;
@@ -86,17 +85,22 @@ final readonly class GameController
             }
         }
 
-        $allGames = $this->library->collection();
         $search = trim((string) ($query['q'] ?? ''));
         $activePlatform = $this->activePlatform($query);
         $statusFilter = $this->statusFilter($query);
-        $viewGames = $this->filterGames($allGames, $activeView);
-        $filteredGames = $this->applyFilters($viewGames, $search, $activePlatform, $statusFilter);
-        $totalResults = count($filteredGames);
+        $totalResults = $this->library->count($activeView, $search, $activePlatform, $statusFilter);
         $totalPages = max(1, (int) ceil($totalResults / self::PER_PAGE));
         $currentPage = min(max(1, (int) ($query['page'] ?? 1)), $totalPages);
-        $games = array_slice($filteredGames, ($currentPage - 1) * self::PER_PAGE, self::PER_PAGE);
-        $counts = $this->viewCounts($allGames);
+        $games = $this->library->page(
+            $activeView,
+            $search,
+            $activePlatform,
+            $statusFilter,
+            self::PER_PAGE,
+            ($currentPage - 1) * self::PER_PAGE,
+        );
+        $counts = $this->library->viewCounts();
+        $totalGames = $counts['all'];
         $viewTitles = [
             'all' => 'All games',
             'owned' => 'Owned games',
@@ -106,7 +110,7 @@ final readonly class GameController
         ];
         $statuses = GameStatus::cases();
         $platformGroups = self::PLATFORM_GROUPS;
-        $platformCounts = $this->platformCounts($viewGames);
+        $platformCounts = $this->library->platformCounts($activeView);
         $filterQuery = ['view' => $activeView, 'q' => $search, 'platform' => $activePlatform, 'status' => $statusFilter];
         $collectionTypes = CollectionType::cases();
         $csrfToken = $this->csrf->value();
@@ -232,102 +236,4 @@ final readonly class GameController
         return $status === 'all' || in_array($status, $allowed, true) ? $status : 'all';
     }
 
-    /**
-     * Selects the games that belong in the active dashboard view.
-     *
-     * @param list<Game> $games
-     * @return list<Game>
-     */
-    private function filterGames(array $games, string $view): array
-    {
-        return array_values(array_filter(
-            $games,
-            static fn (Game $game): bool => match ($view) {
-                'owned' => $game->collectionType() === CollectionType::Owned,
-                'wishlist' => $game->collectionType() === CollectionType::Wishlist,
-                'playing' => $game->status() === GameStatus::Playing,
-                'completed' => $game->status() === GameStatus::Completed,
-                default => true,
-            },
-        ));
-    }
-
-    /**
-     * Applies the dashboard search, console family, and status filters.
-     *
-     * @param list<Game> $games
-     * @return list<Game>
-     */
-    private function applyFilters(array $games, string $search, string $platform, string $status): array
-    {
-        return array_values(array_filter(
-            $games,
-            fn (Game $game): bool => ($search === ''
-                    || stripos($game->title(), $search) !== false
-                    || stripos($game->platform(), $search) !== false)
-                && ($platform === 'all' || $this->belongsToPlatform($game->platform(), $platform))
-                && ($status === 'all' || $game->status()->value === $status),
-        ));
-    }
-
-    /** @param list<Game> $games @return array<string, int> */
-    private function platformCounts(array $games): array
-    {
-        $counts = ['all' => count($games)];
-
-        foreach (array_keys(self::PLATFORM_GROUPS) as $group) {
-            if ($group !== 'all') {
-                $counts[$group] = count(array_filter(
-                    $games,
-                    fn (Game $game): bool => $this->belongsToPlatform($game->platform(), $group),
-                ));
-            }
-        }
-
-        return $counts;
-    }
-
-    /** Reports whether a platform belongs to the requested console family. */
-    private function belongsToPlatform(string $platform, string $group): bool
-    {
-        $platform = strtolower($platform);
-        $matches = match ($group) {
-            'playstation' => str_contains($platform, 'ps') || str_contains($platform, 'playstation'),
-            'nintendo' => preg_match('/switch|nintendo|gamecube|gameboy|\bgba\b|\bwii\b|\b3ds\b|\bds\b/', $platform) === 1,
-            'sega' => preg_match('/sega|dreamcast|saturn|mega drive|game gear/', $platform) === 1,
-            'xbox' => str_contains($platform, 'xbox'),
-            'pc' => preg_match('/\bpc\b|steam/', $platform) === 1,
-            'mobile' => preg_match('/\bios\b|android|mobile/', $platform) === 1,
-            default => false,
-        };
-
-        if ($group !== 'other') {
-            return $matches;
-        }
-
-        foreach (['playstation', 'nintendo', 'sega', 'xbox', 'pc', 'mobile'] as $knownGroup) {
-            if ($this->belongsToPlatform($platform, $knownGroup)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Calculates the badge count displayed for each dashboard view.
-     *
-     * @param list<Game> $games
-     * @return array{all: int, owned: int, wishlist: int, playing: int, completed: int}
-     */
-    private function viewCounts(array $games): array
-    {
-        return [
-            'all' => count($games),
-            'owned' => count($this->filterGames($games, 'owned')),
-            'wishlist' => count($this->filterGames($games, 'wishlist')),
-            'playing' => count($this->filterGames($games, 'playing')),
-            'completed' => count($this->filterGames($games, 'completed')),
-        ];
-    }
 }

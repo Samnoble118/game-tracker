@@ -35,7 +35,11 @@ session_start();
 
 $root = dirname(__DIR__);
 $config = require $root . '/config/app.php';
-$database = Database::instance($config['database_path']);
+$database = Database::instance(
+    $config['database_path'],
+    $config['query_log_path'],
+    $config['slow_query_threshold_ms'],
+);
 $connection = $database->connection();
 $userRepository = new SqliteUserRepository($connection);
 $gameRepository = new SqliteGameRepository($connection);

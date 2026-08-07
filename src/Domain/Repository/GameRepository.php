@@ -28,6 +28,30 @@ interface GameRepository
     public function all(int $userId): array;
 
     /**
+     * Returns one bounded page matching the dashboard filters.
+     *
+     * @return list<Game>
+     */
+    public function page(
+        int $userId,
+        string $view,
+        string $search,
+        string $platform,
+        string $status,
+        int $limit,
+        int $offset,
+    ): array;
+
+    /** Counts games matching the supplied dashboard filters. */
+    public function count(int $userId, string $view, string $search, string $platform, string $status): int;
+
+    /** @return array{all: int, owned: int, wishlist: int, playing: int, completed: int} */
+    public function viewCounts(int $userId): array;
+
+    /** @return array<string, int> */
+    public function platformCounts(int $userId, string $view): array;
+
+    /**
      * Finds a game by ID or returns null when it does not exist.
      */
     public function find(int $id, int $userId): ?Game;

@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace GameTracker\Tests\Support;
 
 use GameTracker\Domain\Entity\Game;
+use GameTracker\Domain\Enum\CollectionType;
+use GameTracker\Domain\Enum\GameStatus;
 use GameTracker\Domain\Repository\GameRepository;
 
 /**
@@ -44,6 +46,36 @@ final class InMemoryGameRepository implements GameRepository
         ));
     }
 
+    /** Returns a filtered page for tests exercising the scalable query contract. */
+    public function page(int $userId, string $view, string $search, string $platform, string $status, int $limit, int $offset): array
+    {
+        return array_slice($this->filtered($userId, $view, $search, $status), $offset, $limit);
+    }
+
+    /** Counts in-memory games matching the supplied filters. */
+    public function count(int $userId, string $view, string $search, string $platform, string $status): int
+    {
+        return count($this->filtered($userId, $view, $search, $status));
+    }
+
+    /** Returns primary collection counts for the test user. */
+    public function viewCounts(int $userId): array
+    {
+        return [
+            'all' => $this->count($userId, 'all', '', 'all', 'all'),
+            'owned' => $this->count($userId, 'owned', '', 'all', 'all'),
+            'wishlist' => $this->count($userId, 'wishlist', '', 'all', 'all'),
+            'playing' => $this->count($userId, 'playing', '', 'all', 'all'),
+            'completed' => $this->count($userId, 'completed', '', 'all', 'all'),
+        ];
+    }
+
+    /** Returns minimal platform totals required by the repository contract. */
+    public function platformCounts(int $userId, string $view): array
+    {
+        return ['all' => $this->count($userId, $view, '', 'all', 'all')];
+    }
+
     /**
      * Finds an in-memory game by ID.
      */
@@ -59,5 +91,21 @@ final class InMemoryGameRepository implements GameRepository
      */
     public function claimUnowned(int $userId): void
     {
+    }
+
+    /** @return list<Game> */
+    private function filtered(int $userId, string $view, string $search, string $status): array
+    {
+        return array_values(array_filter($this->all($userId), static fn (Game $game): bool =>
+            match ($view) {
+                'owned' => $game->collectionType() === CollectionType::Owned,
+                'wishlist' => $game->collectionType() === CollectionType::Wishlist,
+                'playing' => $game->status() === GameStatus::Playing,
+                'completed' => $game->status() === GameStatus::Completed,
+                default => true,
+            }
+            && ($search === '' || stripos($game->title(), $search) !== false || stripos($game->platform(), $search) !== false)
+            && ($status === 'all' || $game->status()->value === $status)
+        ));
     }
 }

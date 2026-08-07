@@ -18,6 +18,30 @@ php -S localhost:8000 -t public
 
 Open <http://localhost:8000> in your browser.
 
+## Database monitoring
+
+SQLite runs in write-ahead logging (WAL) mode with a five-second busy timeout.
+Dashboard filtering and pagination are executed in SQL and supported by indexes
+for each user's title, collection, and status fields.
+
+Prepared queries are written as JSON Lines to
+`storage/logs/database.jsonl`. Parameter values are deliberately excluded so
+passwords, search terms, and user data are not copied into the log. Watch calls
+while using the application with:
+
+```bash
+tail -f storage/logs/database.jsonl
+```
+
+To show only calls above the configured slow-query threshold:
+
+```bash
+jq 'select(.slow == true)' storage/logs/database.jsonl
+```
+
+The log directory is excluded from Git. Production hosting should rotate this
+file or forward the JSON entries to its monitoring service.
+
 ## Project structure
 
 - `src/Domain` contains the core game model, status enum, and repository contract.
