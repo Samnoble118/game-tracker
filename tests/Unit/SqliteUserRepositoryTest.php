@@ -13,8 +13,10 @@ use GameTracker\Infrastructure\Persistence\SqliteUserRepository;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
+/** Covers user schema migration and account persistence. */
 final class SqliteUserRepositoryTest extends TestCase
 {
+    /** Confirms legacy tables migrate and retain updated account settings. */
     public function test_it_migrates_and_updates_an_existing_user_table(): void
     {
         $connection = new PDO('sqlite::memory:');

@@ -12,14 +12,17 @@ use GameTracker\Domain\Entity\User;
 use GameTracker\Domain\Repository\UserRepository;
 use InvalidArgumentException;
 
+/** Coordinates secure registration, sessions, and account updates. */
 final readonly class Authenticator
 {
     private const SESSION_USER_ID = 'authenticated_user_id';
 
+    /** Creates the service with registered-user persistence. */
     public function __construct(private UserRepository $users)
     {
     }
 
+    /** Registers a unique user and starts their authenticated session. */
     public function register(string $email, string $password, string $confirmation): User
     {
         $email = strtolower(trim($email));
@@ -43,6 +46,7 @@ final readonly class Authenticator
         return $user;
     }
 
+    /** Authenticates valid credentials or returns null when they do not match. */
     public function login(string $email, string $password): ?User
     {
         $user = $this->users->findByEmail($email);
@@ -55,6 +59,7 @@ final readonly class Authenticator
         return $user;
     }
 
+    /** Restores the currently authenticated user from the session. */
     public function currentUser(): ?User
     {
         $id = $_SESSION[self::SESSION_USER_ID] ?? null;
@@ -62,6 +67,7 @@ final readonly class Authenticator
         return is_int($id) ? $this->users->find($id) : null;
     }
 
+    /** Clears the current authentication session and its cookie. */
     public function logout(): void
     {
         $_SESSION = [];
@@ -74,6 +80,7 @@ final readonly class Authenticator
         session_destroy();
     }
 
+    /** Updates profile details after confirming the current password. */
     public function updateProfile(User $user, ?string $username, string $email, string $currentPassword): void
     {
         if (!password_verify($currentPassword, $user->passwordHash())) {
@@ -97,6 +104,7 @@ final readonly class Authenticator
         $this->users->save($user);
     }
 
+    /** Replaces a password after validating the current password and confirmation. */
     public function updatePassword(
         User $user,
         string $currentPassword,
@@ -120,6 +128,7 @@ final readonly class Authenticator
         session_regenerate_id(true);
     }
 
+    /** Regenerates the session and records the authenticated user ID. */
     private function startSession(User $user): void
     {
         session_regenerate_id(true);

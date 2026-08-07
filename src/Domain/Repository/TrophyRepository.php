@@ -10,6 +10,7 @@ namespace GameTracker\Domain\Repository;
 
 use GameTracker\Domain\Entity\Trophy;
 
+/** Defines persistence operations for a game's trophy collection. */
 interface TrophyRepository
 {
     /**

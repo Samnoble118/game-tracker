@@ -13,8 +13,10 @@ use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Domain\Repository\GameRepository;
 use InvalidArgumentException;
 
+/** Handles registration, login, and logout HTTP requests. */
 final readonly class AuthController
 {
+    /** Creates the controller with authentication and security dependencies. */
     public function __construct(
         private Authenticator $auth,
         private GameRepository $games,

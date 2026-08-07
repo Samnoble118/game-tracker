@@ -13,8 +13,10 @@ use GameTracker\Tests\Support\InMemoryUserRepository;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
+/** Covers registration, login, and authenticated account updates. */
 final class AuthenticatorTest extends TestCase
 {
+    /** Starts a clean session before each authentication test. */
     protected function setUp(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -24,6 +26,7 @@ final class AuthenticatorTest extends TestCase
         $_SESSION = [];
     }
 
+    /** Confirms registration hashes credentials and permits a valid login. */
     public function test_it_registers_and_authenticates_a_user(): void
     {
         $auth = new Authenticator(new InMemoryUserRepository());
@@ -37,6 +40,7 @@ final class AuthenticatorTest extends TestCase
         self::assertNotSame('strong-passphrase', $user->passwordHash());
     }
 
+    /** Confirms registration rejects passwords below the minimum length. */
     public function test_it_rejects_a_short_password(): void
     {
         $auth = new Authenticator(new InMemoryUserRepository());
@@ -45,6 +49,7 @@ final class AuthenticatorTest extends TestCase
         $auth->register('player@example.com', 'short', 'short');
     }
 
+    /** Confirms invalid credentials do not authenticate a user. */
     public function test_it_rejects_incorrect_credentials(): void
     {
         $auth = new Authenticator(new InMemoryUserRepository());
@@ -53,6 +58,7 @@ final class AuthenticatorTest extends TestCase
         self::assertNull($auth->login('player@example.com', 'wrong-password'));
     }
 
+    /** Confirms profile changes require and accept the current password. */
     public function test_it_updates_profile_details_after_password_confirmation(): void
     {
         $auth = new Authenticator(new InMemoryUserRepository());
@@ -65,6 +71,7 @@ final class AuthenticatorTest extends TestCase
         self::assertSame('player_one', $user->displayName());
     }
 
+    /** Confirms a verified password can be securely replaced. */
     public function test_it_replaces_the_password_after_verifying_the_current_one(): void
     {
         $auth = new Authenticator(new InMemoryUserRepository());

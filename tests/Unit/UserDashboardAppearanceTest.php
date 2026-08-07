@@ -12,8 +12,10 @@ use GameTracker\Domain\Entity\User;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
+/** Covers validation and storage of dashboard appearance preferences. */
 final class UserDashboardAppearanceTest extends TestCase
 {
+    /** Confirms valid artwork preferences update the user entity. */
     public function test_it_updates_dashboard_appearance(): void
     {
         $user = new User('player@example.com', 'hash');
@@ -25,6 +27,7 @@ final class UserDashboardAppearanceTest extends TestCase
         self::assertSame(65, $user->dashboardOverlay());
     }
 
+    /** Confirms unsupported artwork display modes are rejected. */
     public function test_it_rejects_an_unknown_display_mode(): void
     {
         $user = new User('player@example.com', 'hash');
