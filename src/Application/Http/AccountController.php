@@ -37,7 +37,7 @@ final readonly class AccountController
     public function handle(User $user, array $server, array $query, array $input, array $files = []): void
     {
         $errors = [];
-        $section = in_array(($input['section'] ?? 'profile'), ['password', 'appearance'], true)
+        $section = in_array(($input['section'] ?? 'profile'), ['password', 'appearance', 'merchandise-appearance'], true)
             ? (string) $input['section'] : 'profile';
 
         if (($server['REQUEST_METHOD'] ?? 'GET') === 'POST') {
@@ -45,7 +45,19 @@ final readonly class AccountController
                 $errors[] = 'Your session expired. Refresh the page and try again.';
             } else {
                 try {
-                    if ($section === 'appearance') {
+                    if ($section === 'merchandise-appearance') {
+                        if (($input['appearance_action'] ?? 'save') === 'remove') {
+                            $this->customizer->removeMerchandise($user);
+                        } else {
+                            $this->customizer->updateMerchandise(
+                                $user,
+                                (string) ($input['image_mode'] ?? 'banner'),
+                                (int) ($input['overlay'] ?? 55),
+                                isset($files['merchandise_image']) && is_array($files['merchandise_image'])
+                                    ? $files['merchandise_image'] : null,
+                            );
+                        }
+                    } elseif ($section === 'appearance') {
                         if (($input['appearance_action'] ?? 'save') === 'remove') {
                             $this->customizer->remove($user);
                         } else {

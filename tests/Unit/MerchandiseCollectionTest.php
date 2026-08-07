@@ -11,6 +11,7 @@ namespace GameTracker\Tests\Unit;
 use GameTracker\Domain\Entity\MerchandiseItem;
 use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\MerchandiseCategory;
+use GameTracker\Domain\Enum\MerchandisePackaging;
 use GameTracker\Infrastructure\Persistence\SqliteMerchandiseRepository;
 use InvalidArgumentException;
 use PDO;
@@ -27,7 +28,7 @@ final class MerchandiseCollectionTest extends TestCase
         $repository = new SqliteMerchandiseRepository($connection);
         $item = new MerchandiseItem(
             'Sonic Anniversary Statue', 'Sonic the Hedgehog',
-            MerchandiseCategory::Statue, 1, CollectionType::Owned, 2, 'Limited edition.',
+            MerchandiseCategory::Statue, 1, MerchandisePackaging::Boxed, CollectionType::Owned, 2, 'Limited edition.',
         );
 
         $repository->save($item);
@@ -36,6 +37,7 @@ final class MerchandiseCollectionTest extends TestCase
         self::assertNotNull($stored);
         self::assertSame('Sonic Anniversary Statue', $stored->name());
         self::assertSame(MerchandiseCategory::Statue, $stored->category());
+        self::assertSame(MerchandisePackaging::Boxed, $stored->packaging());
         self::assertSame(2, $stored->quantity());
         self::assertNull($repository->find($item->id(), 2));
     }

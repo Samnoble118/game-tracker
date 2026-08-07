@@ -22,6 +22,9 @@ final class User
         private ?string $dashboardImage = null,
         private string $dashboardImageMode = 'banner',
         private int $dashboardOverlay = 55,
+        private ?string $merchandiseImage = null,
+        private string $merchandiseImageMode = 'banner',
+        private int $merchandiseOverlay = 55,
     ) {
         $this->updateEmail($this->email);
         $this->updateUsername($this->username);
@@ -29,6 +32,11 @@ final class User
             $this->dashboardImage,
             $this->dashboardImageMode,
             $this->dashboardOverlay,
+        );
+        $this->updateMerchandiseAppearance(
+            $this->merchandiseImage,
+            $this->merchandiseImageMode,
+            $this->merchandiseOverlay,
         );
     }
 
@@ -80,8 +88,37 @@ final class User
         return $this->dashboardOverlay;
     }
 
+    /** Returns the private merchandise-image filename. */
+    public function merchandiseImage(): ?string { return $this->merchandiseImage; }
+
+    /** Returns whether merchandise artwork is a banner or wallpaper. */
+    public function merchandiseImageMode(): string { return $this->merchandiseImageMode; }
+
+    /** Returns the merchandise artwork overlay percentage. */
+    public function merchandiseOverlay(): int { return $this->merchandiseOverlay; }
+
     /** Validates and updates dashboard artwork settings. */
     public function updateDashboardAppearance(?string $image, string $mode, int $overlay): void
+    {
+        $this->validateAppearance($mode, $overlay);
+
+        $this->dashboardImage = $image;
+        $this->dashboardImageMode = $mode;
+        $this->dashboardOverlay = $overlay;
+    }
+
+    /** Validates and updates merchandise artwork settings. */
+    public function updateMerchandiseAppearance(?string $image, string $mode, int $overlay): void
+    {
+        $this->validateAppearance($mode, $overlay);
+
+        $this->merchandiseImage = $image;
+        $this->merchandiseImageMode = $mode;
+        $this->merchandiseOverlay = $overlay;
+    }
+
+    /** Validates shared artwork display settings. */
+    private function validateAppearance(string $mode, int $overlay): void
     {
         if (!in_array($mode, ['banner', 'wallpaper'], true)) {
             throw new InvalidArgumentException('Choose either banner or wallpaper mode.');
@@ -91,9 +128,6 @@ final class User
             throw new InvalidArgumentException('Overlay strength must be between 20 and 90.');
         }
 
-        $this->dashboardImage = $image;
-        $this->dashboardImageMode = $mode;
-        $this->dashboardOverlay = $overlay;
     }
 
     /** Validates and stores a normalized email address. */

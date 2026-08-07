@@ -75,6 +75,7 @@ if ($route === 'merchandise') {
         new MerchandiseCollection(new SqliteMerchandiseRepository($connection), $currentUser->id()),
         $csrf,
         $root . '/templates/merchandise/index.php',
+        $currentUser,
     );
     $merchandiseController->handle($_SERVER, $_GET, $_POST);
     return;
@@ -93,6 +94,20 @@ if ($route === 'account') {
 
 if ($route === 'dashboard-image') {
     $imagePath = $customizer->pathFor($currentUser);
+    if ($imagePath === null) {
+        http_response_code(404);
+        return;
+    }
+
+    header('Content-Type: ' . (new finfo(FILEINFO_MIME_TYPE))->file($imagePath));
+    header('Cache-Control: private, no-cache');
+    header('X-Content-Type-Options: nosniff');
+    readfile($imagePath);
+    return;
+}
+
+if ($route === 'merchandise-image') {
+    $imagePath = $customizer->merchandisePathFor($currentUser);
     if ($imagePath === null) {
         http_response_code(404);
         return;
