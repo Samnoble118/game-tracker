@@ -16,10 +16,15 @@ use InvalidArgumentException;
 final readonly class Authenticator
 {
     private const SESSION_USER_ID = 'authenticated_user_id';
+    private const SESSION_CREATED_AT = 'authenticated_at';
+    private const SESSION_LAST_ACTIVITY = 'last_activity_at';
 
     /** Creates the service with registered-user persistence. */
-    public function __construct(private UserRepository $users)
-    {
+    public function __construct(
+        private UserRepository $users,
+        private int $idleTimeout = 7200,
+        private int $absoluteTimeout = 86400,
+    ) {
     }
 
     /** Registers a unique user and starts their authenticated session. */
@@ -31,9 +36,7 @@ final readonly class Authenticator
             throw new InvalidArgumentException('The password confirmation does not match.');
         }
 
-        if (strlen($password) < 10) {
-            throw new InvalidArgumentException('The password must contain at least 10 characters.');
-        }
+        $this->validatePassword($password);
 
         if ($this->users->findByEmail($email) !== null) {
             throw new InvalidArgumentException('An account already exists for that email address.');
@@ -50,9 +53,16 @@ final readonly class Authenticator
     public function login(string $email, string $password): ?User
     {
         $user = $this->users->findByEmail($email);
+        $passwordHash = $user?->passwordHash()
+            ?? '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
 
-        if ($user === null || !password_verify($password, $user->passwordHash())) {
+        if (!password_verify($password, $passwordHash) || $user === null) {
             return null;
+        }
+
+        if (password_needs_rehash($user->passwordHash(), PASSWORD_DEFAULT)) {
+            $user->updatePasswordHash(password_hash($password, PASSWORD_DEFAULT));
+            $this->users->save($user);
         }
 
         $this->startSession($user);
@@ -64,7 +74,16 @@ final readonly class Authenticator
     {
         $id = $_SESSION[self::SESSION_USER_ID] ?? null;
 
-        return is_int($id) ? $this->users->find($id) : null;
+        if (!is_int($id) || $this->sessionExpired()) {
+            if (is_int($id)) {
+                $this->logout();
+            }
+            return null;
+        }
+
+        $_SESSION[self::SESSION_LAST_ACTIVITY] = time();
+
+        return $this->users->find($id);
     }
 
     /** Clears the current authentication session and its cookie. */
@@ -119,9 +138,7 @@ final readonly class Authenticator
             throw new InvalidArgumentException('The new password confirmation does not match.');
         }
 
-        if (strlen($newPassword) < 10) {
-            throw new InvalidArgumentException('The new password must contain at least 10 characters.');
-        }
+        $this->validatePassword($newPassword, 'new password');
 
         $user->updatePasswordHash(password_hash($newPassword, PASSWORD_DEFAULT));
         $this->users->save($user);
@@ -133,5 +150,29 @@ final readonly class Authenticator
     {
         session_regenerate_id(true);
         $_SESSION[self::SESSION_USER_ID] = $user->id();
+        $_SESSION[self::SESSION_CREATED_AT] = time();
+        $_SESSION[self::SESSION_LAST_ACTIVITY] = time();
+    }
+
+    /** Reports whether the authenticated session exceeded either lifetime. */
+    private function sessionExpired(): bool
+    {
+        $createdAt = $_SESSION[self::SESSION_CREATED_AT] ?? 0;
+        $lastActivity = $_SESSION[self::SESSION_LAST_ACTIVITY] ?? 0;
+
+        return !is_int($createdAt) || !is_int($lastActivity)
+            || $createdAt < time() - $this->absoluteTimeout
+            || $lastActivity < time() - $this->idleTimeout;
+    }
+
+    /** Enforces bounded password input and the minimum account requirement. */
+    private function validatePassword(string $password, string $label = 'password'): void
+    {
+        if (strlen($password) < 10) {
+            throw new InvalidArgumentException(sprintf('The %s must contain at least 10 characters.', $label));
+        }
+        if (strlen($password) > 4096) {
+            throw new InvalidArgumentException(sprintf('The %s is too long.', ucfirst($label)));
+        }
     }
 }

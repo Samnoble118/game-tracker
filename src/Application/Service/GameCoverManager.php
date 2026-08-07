@@ -16,6 +16,8 @@ use InvalidArgumentException;
 final readonly class GameCoverManager
 {
     private const MAX_FILE_SIZE = 5_242_880;
+    private const MAX_IMAGE_DIMENSION = 8000;
+    private const MAX_IMAGE_PIXELS = 40_000_000;
 
     /** Creates the manager with game persistence and private upload storage. */
     public function __construct(private GameRepository $games, private string $uploadPath)
@@ -41,8 +43,14 @@ final readonly class GameCoverManager
 
         $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($temporaryPath);
         $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-        if (!is_string($mime) || !isset($extensions[$mime]) || getimagesize($temporaryPath) === false) {
+        $dimensions = getimagesize($temporaryPath);
+        if (!is_string($mime) || !isset($extensions[$mime]) || $dimensions === false) {
             throw new InvalidArgumentException('Cover images must be JPEG, PNG, or WebP files.');
+        }
+        if ($dimensions[0] > self::MAX_IMAGE_DIMENSION
+            || $dimensions[1] > self::MAX_IMAGE_DIMENSION
+            || $dimensions[0] * $dimensions[1] > self::MAX_IMAGE_PIXELS) {
+            throw new InvalidArgumentException('The cover image dimensions are too large.');
         }
 
         if (!is_dir($this->uploadPath) && !mkdir($this->uploadPath, 0750, true) && !is_dir($this->uploadPath)) {

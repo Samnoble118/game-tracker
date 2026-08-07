@@ -82,4 +82,15 @@ final class AuthenticatorTest extends TestCase
         self::assertNull($auth->login('player@example.com', 'strong-passphrase'));
         self::assertNotNull($auth->login('player@example.com', 'new-strong-passphrase'));
     }
+
+    /** Confirms inactive sessions are destroyed rather than restored indefinitely. */
+    public function test_it_expires_an_inactive_session(): void
+    {
+        $auth = new Authenticator(new InMemoryUserRepository(), 60, 3600);
+        $auth->register('player@example.com', 'strong-passphrase', 'strong-passphrase');
+        $_SESSION['last_activity_at'] = time() - 61;
+
+        self::assertNull($auth->currentUser());
+        self::assertArrayNotHasKey('authenticated_user_id', $_SESSION);
+    }
 }

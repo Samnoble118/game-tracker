@@ -10,6 +10,7 @@ namespace GameTracker\Application\Http;
 
 use GameTracker\Application\Service\Authenticator;
 use GameTracker\Core\Http\CsrfToken;
+use GameTracker\Core\Security\RateLimiter;
 use GameTracker\Domain\Repository\GameRepository;
 use InvalidArgumentException;
 
@@ -21,6 +22,7 @@ final readonly class AuthController
         private Authenticator $auth,
         private GameRepository $games,
         private CsrfToken $csrf,
+        private RateLimiter $rateLimiter,
         private string $templatePath,
     ) {
     }
@@ -38,9 +40,19 @@ final readonly class AuthController
         $email = trim((string) ($input['email'] ?? ''));
 
         if (($server['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-            if (!$this->csrf->isValid(isset($input['_token']) ? (string) $input['_token'] : null)) {
+            $remoteAddress = (string) ($server['REMOTE_ADDR'] ?? 'unknown');
+            $rateLimitKey = $mode . '|' . $remoteAddress . '|' . strtolower($email);
+            $maximumAttempts = $mode === 'register' ? 3 : 5;
+            $windowSeconds = $mode === 'register' ? 3600 : 900;
+
+            if ($this->rateLimiter->tooManyAttempts($rateLimitKey, $maximumAttempts, $windowSeconds)) {
+                http_response_code(429);
+                header('Retry-After: ' . $windowSeconds);
+                $errors[] = 'Too many attempts. Please wait before trying again.';
+            } elseif (!$this->csrf->isValid(isset($input['_token']) ? (string) $input['_token'] : null)) {
                 $errors[] = 'Your session expired. Refresh the page and try again.';
             } else {
+                $this->rateLimiter->hit($rateLimitKey, $windowSeconds);
                 try {
                     if ($mode === 'register') {
                         $user = $this->auth->register(
@@ -57,6 +69,7 @@ final readonly class AuthController
                 }
 
                 if ($errors === []) {
+                    $this->rateLimiter->clear($rateLimitKey);
                     header('Location: /', true, 303);
                     return;
                 }

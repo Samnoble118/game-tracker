@@ -19,6 +19,8 @@ use GameTracker\Application\Service\MerchandiseCollection;
 use GameTracker\Application\Service\TrophyCabinet;
 use GameTracker\Core\Database;
 use GameTracker\Core\Http\CsrfToken;
+use GameTracker\Core\Http\SecurityHeaders;
+use GameTracker\Core\Security\RateLimiter;
 use GameTracker\Infrastructure\Persistence\SqliteGameRepository;
 use GameTracker\Infrastructure\Persistence\SqliteMerchandiseRepository;
 use GameTracker\Infrastructure\Persistence\SqliteTrophyRepository;
@@ -26,29 +28,79 @@ use GameTracker\Infrastructure\Persistence\SqliteUserRepository;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-session_set_cookie_params([
-    'httponly' => true,
-    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-    'samesite' => 'Lax',
-]);
-session_start();
-
 $root = dirname(__DIR__);
 $config = require $root . '/config/app.php';
+$isHttps = str_starts_with($config['app_url'], 'https://')
+    || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+
+ini_set('display_errors', $config['environment'] === 'local' ? '1' : '0');
+ini_set('log_errors', '1');
+(new SecurityHeaders())->apply($isHttps);
+header_remove('X-Powered-By');
+header('Cache-Control: private, no-store');
+
+set_exception_handler(static function (Throwable $exception) use ($config): void {
+    error_log(sprintf(
+        '[%s] %s in %s:%d',
+        gmdate('c'),
+        $exception->getMessage(),
+        $exception->getFile(),
+        $exception->getLine(),
+    ));
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=utf-8');
+    }
+    echo $config['environment'] === 'local'
+        ? 'Application error: ' . $exception->getMessage()
+        : 'The application could not complete your request.';
+});
+
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'httponly' => true,
+    'secure' => $isHttps,
+    'samesite' => 'Lax',
+]);
+
 $database = Database::instance(
     $config['database_path'],
     $config['query_log_path'],
     $config['slow_query_threshold_ms'],
 );
 $connection = $database->connection();
+$route = (string) ($_GET['route'] ?? '');
+
+if ($route === 'health') {
+    header('Content-Type: application/json; charset=utf-8');
+    $healthy = $connection->query('SELECT 1')->fetchColumn() === 1;
+    http_response_code($healthy ? 200 : 503);
+    echo json_encode(['status' => $healthy ? 'ok' : 'unavailable'], JSON_THROW_ON_ERROR);
+    return;
+}
+
+session_start();
+
 $userRepository = new SqliteUserRepository($connection);
 $gameRepository = new SqliteGameRepository($connection);
-$auth = new Authenticator($userRepository);
+$auth = new Authenticator(
+    $userRepository,
+    $config['session_idle_timeout'],
+    $config['session_absolute_timeout'],
+);
 $customizer = new DashboardCustomizer($userRepository, $root . '/storage/uploads');
 $coverManager = new GameCoverManager($gameRepository, $root . '/storage/covers');
 $csrf = new CsrfToken();
-$authController = new AuthController($auth, $gameRepository, $csrf, $root . '/templates/auth/form.php');
-$route = (string) ($_GET['route'] ?? '');
+$authController = new AuthController(
+    $auth,
+    $gameRepository,
+    $csrf,
+    new RateLimiter($connection),
+    $root . '/templates/auth/form.php',
+);
 
 if ($route === 'login' || $route === 'register') {
     if ($auth->currentUser() !== null) {
@@ -104,7 +156,7 @@ if ($route === 'dashboard-image') {
     }
 
     header('Content-Type: ' . (new finfo(FILEINFO_MIME_TYPE))->file($imagePath));
-    header('Cache-Control: private, no-cache');
+    header('Cache-Control: private, no-store');
     header('X-Content-Type-Options: nosniff');
     readfile($imagePath);
     return;
@@ -118,7 +170,7 @@ if ($route === 'merchandise-image') {
     }
 
     header('Content-Type: ' . (new finfo(FILEINFO_MIME_TYPE))->file($imagePath));
-    header('Cache-Control: private, no-cache');
+    header('Cache-Control: private, no-store');
     header('X-Content-Type-Options: nosniff');
     readfile($imagePath);
     return;
@@ -133,7 +185,7 @@ if ($route === 'game-cover') {
     }
 
     header('Content-Type: ' . (new finfo(FILEINFO_MIME_TYPE))->file($coverPath));
-    header('Cache-Control: private, no-cache');
+    header('Cache-Control: private, no-store');
     header('X-Content-Type-Options: nosniff');
     readfile($coverPath);
     return;
