@@ -9,15 +9,18 @@ declare(strict_types=1);
 use GameTracker\Application\Http\AuthController;
 use GameTracker\Application\Http\AccountController;
 use GameTracker\Application\Http\GameController;
+use GameTracker\Application\Http\MerchandiseController;
 use GameTracker\Application\Http\TrophyController;
 use GameTracker\Application\Service\Authenticator;
 use GameTracker\Application\Service\DashboardCustomizer;
 use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Application\Service\GameCoverManager;
+use GameTracker\Application\Service\MerchandiseCollection;
 use GameTracker\Application\Service\TrophyCabinet;
 use GameTracker\Core\Database;
 use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Infrastructure\Persistence\SqliteGameRepository;
+use GameTracker\Infrastructure\Persistence\SqliteMerchandiseRepository;
 use GameTracker\Infrastructure\Persistence\SqliteTrophyRepository;
 use GameTracker\Infrastructure\Persistence\SqliteUserRepository;
 
@@ -66,6 +69,16 @@ if ($currentUser === null) {
 }
 
 $library = new GameLibrary($gameRepository, $currentUser->id());
+
+if ($route === 'merchandise') {
+    $merchandiseController = new MerchandiseController(
+        new MerchandiseCollection(new SqliteMerchandiseRepository($connection), $currentUser->id()),
+        $csrf,
+        $root . '/templates/merchandise/index.php',
+    );
+    $merchandiseController->handle($_SERVER, $_GET, $_POST);
+    return;
+}
 
 if ($route === 'account') {
     $accountController = new AccountController(
