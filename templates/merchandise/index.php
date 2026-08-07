@@ -13,7 +13,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Merchandise — Game Tracker</title>
+    <title>Merchandise — ArchiveXP</title>
     <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body class="<?= $currentUser->merchandiseImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->merchandiseImageMode()) : '' ?>" style="<?= $currentUser->merchandiseImage() !== null ? '--dashboard-image: url(\'/?route=merchandise-image\'); --dashboard-overlay: ' . ($currentUser->merchandiseOverlay() / 100) : '' ?>">

@@ -14,15 +14,15 @@ $registering = $mode === 'register';
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $registering ? 'Create account' : 'Sign in' ?> — Game Tracker</title>
+    <title><?= $registering ? 'Create account' : 'Sign in' ?> — ArchiveXP</title>
     <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body class="auth-page">
     <main class="auth-shell">
         <section class="auth-intro">
             <p class="eyebrow">Your personal library</p>
-            <h1>Game Tracker</h1>
-            <p class="lede">Your games, progress, wishlist, and trophies—private to your account.</p>
+            <h1>ArchiveXP</h1>
+            <p class="lede">Your collection, progress, and story—private to your account.</p>
         </section>
 
         <section class="panel auth-panel">
@@ -59,7 +59,7 @@ $registering = $mode === 'register';
             </form>
 
             <p class="auth-switch">
-                <?= $registering ? 'Already registered?' : 'New to Game Tracker?' ?>
+                <?= $registering ? 'Already registered?' : 'New to ArchiveXP?' ?>
                 <a class="text-link" href="/?route=<?= $registering ? 'login' : 'register' ?>">
                     <?= $registering ? 'Sign in' : 'Create an account' ?>
                 </a>

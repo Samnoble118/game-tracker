@@ -22,7 +22,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Game Tracker</title>
+    <title>ArchiveXP — Games</title>
     <link rel="stylesheet" href="/assets/app.css">
     <script src="/assets/app.js" defer></script>
 </head>
@@ -30,7 +30,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     <header class="site-header dashboard-header">
         <div>
             <p class="eyebrow">Your personal library</p>
-            <h1>Game Tracker</h1>
+            <h1>ArchiveXP</h1>
             <p class="lede">Keep every platform, playthrough, and percentage in one place.</p>
         </div>
         <div class="summary" aria-label="Collection summary">

@@ -1,7 +1,7 @@
-# Game Tracker
+# ArchiveXP
 
-A namespaced, object-oriented PHP application for tracking your game collection,
-platforms, play status, and current progress.
+A private collection home for cataloguing games, platforms, play progress,
+trophies, merchandise, and the stories behind a personal collection.
 
 ## Requirements
 
@@ -84,7 +84,7 @@ injection so they remain easy to test and replace.
 
 ## Versioning and releases
 
-Game Tracker uses [Semantic Versioning](https://semver.org/). Released versions
+ArchiveXP uses [Semantic Versioning](https://semver.org/). Released versions
 are identified by Git tags such as `v1.0.0` and `v1.0.1`, then published as
 GitHub Releases. Changes planned for the next release are collected in
 [`CHANGELOG.md`](CHANGELOG.md) under `Unreleased`.
@@ -94,6 +94,6 @@ package versions from Git tags. Create a release only from an reviewed commit on
 `main`.
 
 ```bash
-git tag -a v1.0.0 -m "Game Tracker 1.0.0"
+git tag -a v1.0.0 -m "ArchiveXP 1.0.0"
 git push origin v1.0.0
 ```

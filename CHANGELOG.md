@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Game Tracker will be recorded here.
+All notable changes to ArchiveXP will be recorded here.
 
 This project follows [Semantic Versioning](https://semver.org/):
 
