@@ -16,6 +16,8 @@ use InvalidArgumentException;
 final readonly class DashboardCustomizer
 {
     private const MAX_FILE_SIZE = 5_242_880;
+    private const MAX_IMAGE_DIMENSION = 8000;
+    private const MAX_IMAGE_PIXELS = 40_000_000;
 
     /** Creates the service with user persistence and private upload storage. */
     public function __construct(
@@ -103,8 +105,14 @@ final readonly class DashboardCustomizer
 
         $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($temporaryPath);
         $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-        if (!is_string($mime) || !isset($extensions[$mime]) || getimagesize($temporaryPath) === false) {
+        $dimensions = getimagesize($temporaryPath);
+        if (!is_string($mime) || !isset($extensions[$mime]) || $dimensions === false) {
             throw new InvalidArgumentException('Only JPEG, PNG, and WebP images are supported.');
+        }
+        if ($dimensions[0] > self::MAX_IMAGE_DIMENSION
+            || $dimensions[1] > self::MAX_IMAGE_DIMENSION
+            || $dimensions[0] * $dimensions[1] > self::MAX_IMAGE_PIXELS) {
+            throw new InvalidArgumentException('The image dimensions are too large.');
         }
 
         if (!is_dir($this->uploadPath) && !mkdir($this->uploadPath, 0750, true) && !is_dir($this->uploadPath)) {

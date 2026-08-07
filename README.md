@@ -18,6 +18,33 @@ php -S localhost:8000 -t public
 
 Open <http://localhost:8000> in your browser.
 
+## Configuration and security
+
+Production settings are supplied through environment variables; copy
+`.env.example` as a reference, but do not commit a real `.env` file. The web
+server's document root must be `public/` so the database, uploads, logs, source,
+and configuration files cannot be requested directly.
+
+Before allowing public registrations:
+
+- use HTTPS and set `APP_URL` to the exact HTTPS origin;
+- store the database on persistent, access-controlled storage;
+- retain uploaded artwork outside `public/` or move it to private object storage;
+- configure encrypted backups and test restoring them;
+- rotate or forward `storage/logs/database.jsonl`;
+- keep PHP and Composer dependencies patched;
+- enable multi-factor authentication for GitHub and hosting accounts.
+
+Authentication uses regenerated session IDs, idle and absolute session expiry,
+CSRF tokens, generic login failures, password-hash upgrades, and database-backed
+login/registration throttling. Responses include a restrictive browser security
+policy and private pages are marked `no-store`. Image uploads are checked by
+size, detected MIME type, decoded dimensions, and pixel count before storage.
+
+The unauthenticated deployment health check is available at
+`/?route=health`. It returns only `{"status":"ok"}` and no user or system
+details.
+
 ## Database monitoring
 
 SQLite runs in write-ahead logging (WAL) mode with a five-second busy timeout.

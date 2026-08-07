@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, fileinfo
+          coverage: none
+      - name: Validate Composer metadata
+        run: composer validate --strict
+      - name: Install locked dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Audit dependencies
+        run: composer audit
+      - name: Run tests
+        run: composer test
+      - name: Check PHP syntax
+        run: find src public config templates tests -name '*.php' -print0 | xargs -0 -n1 php -l
