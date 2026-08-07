@@ -12,10 +12,12 @@ use GameTracker\Domain\Entity\User;
 use GameTracker\Domain\Repository\UserRepository;
 use InvalidArgumentException;
 
+/** Manages per-user dashboard artwork and display preferences. */
 final readonly class DashboardCustomizer
 {
     private const MAX_FILE_SIZE = 5_242_880;
 
+    /** Creates the service with user persistence and private upload storage. */
     public function __construct(
         private UserRepository $users,
         private string $uploadPath,
@@ -35,6 +37,7 @@ final readonly class DashboardCustomizer
         $this->users->save($user);
     }
 
+    /** Removes custom artwork and restores default appearance settings. */
     public function remove(User $user): void
     {
         $this->deleteExisting($user);
@@ -42,6 +45,7 @@ final readonly class DashboardCustomizer
         $this->users->save($user);
     }
 
+    /** Resolves a safe private artwork path for the supplied user. */
     public function pathFor(User $user): ?string
     {
         $filename = $user->dashboardImage();
@@ -86,6 +90,7 @@ final readonly class DashboardCustomizer
         return $filename;
     }
 
+    /** Deletes the user's previous artwork file when it exists. */
     private function deleteExisting(User $user): void
     {
         $path = $this->pathFor($user);

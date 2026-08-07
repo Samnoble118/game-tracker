@@ -12,10 +12,12 @@ use GameTracker\Domain\Entity\Game;
 use GameTracker\Domain\Repository\GameRepository;
 use InvalidArgumentException;
 
+/** Manages private cover artwork for individual library entries. */
 final readonly class GameCoverManager
 {
     private const MAX_FILE_SIZE = 5_242_880;
 
+    /** Creates the manager with game persistence and private upload storage. */
     public function __construct(private GameRepository $games, private string $uploadPath)
     {
     }
@@ -57,6 +59,7 @@ final readonly class GameCoverManager
         $this->games->save($game);
     }
 
+    /** Removes a game's custom cover and updates its stored record. */
     public function remove(Game $game): void
     {
         $this->deleteFile($game);
@@ -64,6 +67,7 @@ final readonly class GameCoverManager
         $this->games->save($game);
     }
 
+    /** Resolves a safe private cover path for the supplied game. */
     public function pathFor(Game $game): ?string
     {
         $filename = $game->coverImage();
@@ -75,6 +79,7 @@ final readonly class GameCoverManager
         return is_file($path) ? $path : null;
     }
 
+    /** Deletes the previous cover file when it exists. */
     private function deleteFile(Game $game): void
     {
         $path = $this->pathFor($game);

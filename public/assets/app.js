@@ -16,6 +16,7 @@
     let requestController = null;
     let debounceTimer = null;
 
+    /** Fetches and replaces the game results panel without a full page reload. */
     const requestResults = async (url, historyMode = 'push') => {
         const panel = document.querySelector('.collection-panel');
         if (!(panel instanceof HTMLElement)) {
@@ -65,6 +66,7 @@
         }
     };
 
+    /** Builds the current search URL from the live filter controls. */
     const formUrl = () => {
         const url = new URL('/', window.location.origin);
         const parameters = new URLSearchParams(new FormData(form));

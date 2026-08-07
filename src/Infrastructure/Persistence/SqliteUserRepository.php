@@ -12,8 +12,10 @@ use GameTracker\Domain\Entity\User;
 use GameTracker\Domain\Repository\UserRepository;
 use PDO;
 
+/** Stores, retrieves, and migrates registered users in SQLite. */
 final readonly class SqliteUserRepository implements UserRepository
 {
+    /** Creates the repository and ensures the user schema is current. */
     public function __construct(private PDO $connection)
     {
         $this->connection->exec(
@@ -33,6 +35,7 @@ final readonly class SqliteUserRepository implements UserRepository
         $this->migrateDashboardAppearance();
     }
 
+    /** Inserts a new user or updates an existing account. */
     public function save(User $user): void
     {
         $parameters = [
@@ -64,6 +67,7 @@ final readonly class SqliteUserRepository implements UserRepository
         $statement->execute([...$parameters, 'id' => $user->id()]);
     }
 
+    /** Finds and hydrates a user by ID. */
     public function find(int $id): ?User
     {
         $statement = $this->connection->prepare(
@@ -74,6 +78,7 @@ final readonly class SqliteUserRepository implements UserRepository
         return $this->hydrate($statement->fetch());
     }
 
+    /** Finds and hydrates a user by case-insensitive email. */
     public function findByEmail(string $email): ?User
     {
         $statement = $this->connection->prepare(
@@ -84,6 +89,7 @@ final readonly class SqliteUserRepository implements UserRepository
         return $this->hydrate($statement->fetch());
     }
 
+    /** Finds and hydrates a user by case-insensitive username. */
     public function findByUsername(string $username): ?User
     {
         $statement = $this->connection->prepare(
@@ -95,6 +101,7 @@ final readonly class SqliteUserRepository implements UserRepository
         return $this->hydrate($statement->fetch());
     }
 
+    /** Converts a database row into a user entity. */
     private function hydrate(array|false $row): ?User
     {
         return $row === false ? null : new User(
@@ -108,6 +115,7 @@ final readonly class SqliteUserRepository implements UserRepository
         );
     }
 
+    /** Adds username storage and uniqueness to legacy databases. */
     private function migrateUsername(): void
     {
         $columns = $this->connection->query('PRAGMA table_info(users)')->fetchAll();
@@ -122,6 +130,7 @@ final readonly class SqliteUserRepository implements UserRepository
         );
     }
 
+    /** Adds dashboard appearance columns to legacy databases. */
     private function migrateDashboardAppearance(): void
     {
         $columns = array_column($this->connection->query('PRAGMA table_info(users)')->fetchAll(), 'name');

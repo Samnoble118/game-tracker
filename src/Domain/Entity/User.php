@@ -10,8 +10,10 @@ namespace GameTracker\Domain\Entity;
 
 use InvalidArgumentException;
 
+/** Represents a registered user's identity and dashboard preferences. */
 final class User
 {
+    /** Creates a user, optionally restored with persisted account settings. */
     public function __construct(
         private string $email,
         private string $passwordHash,
@@ -30,46 +32,55 @@ final class User
         );
     }
 
+    /** Returns the persisted identifier or null for a new account. */
     public function id(): ?int
     {
         return $this->id;
     }
 
+    /** Returns the normalized email address. */
     public function email(): string
     {
         return $this->email;
     }
 
+    /** Returns the securely hashed password. */
     public function passwordHash(): string
     {
         return $this->passwordHash;
     }
 
+    /** Returns the optional public username. */
     public function username(): ?string
     {
         return $this->username;
     }
 
+    /** Returns the username, falling back to the email address. */
     public function displayName(): string
     {
         return $this->username ?? $this->email;
     }
 
+    /** Returns the private dashboard-image filename. */
     public function dashboardImage(): ?string
     {
         return $this->dashboardImage;
     }
 
+    /** Returns whether artwork is displayed as a banner or wallpaper. */
     public function dashboardImageMode(): string
     {
         return $this->dashboardImageMode;
     }
 
+    /** Returns the dashboard artwork overlay percentage. */
     public function dashboardOverlay(): int
     {
         return $this->dashboardOverlay;
     }
 
+    /** Validates and updates dashboard artwork settings. */
     public function updateDashboardAppearance(?string $image, string $mode, int $overlay): void
     {
         if (!in_array($mode, ['banner', 'wallpaper'], true)) {
@@ -85,6 +96,7 @@ final class User
         $this->dashboardOverlay = $overlay;
     }
 
+    /** Validates and stores a normalized email address. */
     public function updateEmail(string $email): void
     {
         $email = strtolower(trim($email));
@@ -96,6 +108,7 @@ final class User
         $this->email = $email;
     }
 
+    /** Validates and stores an optional username. */
     public function updateUsername(?string $username): void
     {
         $username = $username === null ? null : trim($username);
@@ -113,11 +126,13 @@ final class User
         $this->username = $username;
     }
 
+    /** Replaces the stored password hash. */
     public function updatePasswordHash(string $passwordHash): void
     {
         $this->passwordHash = $passwordHash;
     }
 
+    /** Assigns the persisted identifier once. */
     public function assignId(int $id): void
     {
         if ($this->id !== null) {

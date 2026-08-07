@@ -287,6 +287,7 @@ final readonly class GameController
         return $counts;
     }
 
+    /** Reports whether a platform belongs to the requested console family. */
     private function belongsToPlatform(string $platform, string $group): bool
     {
         $platform = strtolower($platform);

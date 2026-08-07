@@ -174,6 +174,7 @@ final readonly class SqliteGameRepository implements GameRepository
         }
     }
 
+    /** Assigns legacy games without an owner to the supplied user. */
     public function claimUnowned(int $userId): void
     {
         $statement = $this->connection->prepare(

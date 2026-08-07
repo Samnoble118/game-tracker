@@ -14,8 +14,10 @@ use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Domain\Entity\User;
 use InvalidArgumentException;
 
+/** Handles authenticated account, security, and appearance requests. */
 final readonly class AccountController
 {
+    /** Creates the controller with account services and its template. */
     public function __construct(
         private Authenticator $auth,
         private DashboardCustomizer $customizer,
