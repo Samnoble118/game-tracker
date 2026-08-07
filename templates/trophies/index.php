@@ -21,7 +21,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $escape($game->title()) ?> Trophies — Game Tracker</title>
+    <title><?= $escape($game->title()) ?> Trophies — ArchiveXP</title>
     <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>

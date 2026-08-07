@@ -13,7 +13,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>My Account — Game Tracker</title>
+    <title>My Account — ArchiveXP</title>
     <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
