@@ -85,6 +85,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
                 <label><span>Notes</span><textarea name="notes" rows="4" maxlength="1000" placeholder="Edition, condition, shelf location…"><?= $escape($form['notes']) ?></textarea></label>
                 <button class="primary-button" type="submit"><?= $form['id'] === '' ? 'Add to collection' : 'Save changes' ?></button>
             </form>
+            <?php if ($form['id'] === ''): ?><aside class="bulk-import-callout"><div><strong>Managing several items?</strong><span>Import or download your merchandise spreadsheet.</span></div><nav class="bulk-transfer-actions" aria-label="Merchandise spreadsheet tools"><a href="/?route=data-transfer&amp;type=merchandise">Upload CSV <span aria-hidden="true">→</span></a><a href="/?route=data-transfer&amp;type=merchandise&amp;action=export">Export CSV <span aria-hidden="true">↓</span></a></nav></aside><?php endif; ?>
         </section>
         <section class="panel collection-panel">
             <div class="panel-heading"><div><p class="eyebrow">Display cabinet</p><h2><?= count($items) ?> <?= count($items) === 1 ? 'item' : 'items' ?></h2></div></div>
