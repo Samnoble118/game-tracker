@@ -23,6 +23,10 @@ This project follows [Semantic Versioning](https://semver.org/):
 - Private game journals with 1–5 ratings, dated play sessions, playtime, progress snapshots, notes, and custom lists.
 - Manual PlayStation trophy checklists with earned-state tracking.
 - Wishlist and filtered collection dashboard views.
+
+### Fixed
+
+- Game Edit links now retain the current filters and jump directly to the populated edit form.
 - Object-oriented PHP application structure with SQLite persistence.
 
 ## Release process
