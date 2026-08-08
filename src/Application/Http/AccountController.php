@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace GameTracker\Application\Http;
 
 use GameTracker\Application\Service\Authenticator;
-use GameTracker\Application\Service\DashboardCustomizer;
 use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Domain\Entity\User;
 use InvalidArgumentException;
@@ -20,7 +19,6 @@ final readonly class AccountController
     /** Creates the controller with account services and its template. */
     public function __construct(
         private Authenticator $auth,
-        private DashboardCustomizer $customizer,
         private CsrfToken $csrf,
         private string $templatePath,
     ) {
@@ -37,7 +35,7 @@ final readonly class AccountController
     public function handle(User $user, array $server, array $query, array $input, array $files = []): void
     {
         $errors = [];
-        $section = in_array(($input['section'] ?? 'profile'), ['password', 'appearance', 'merchandise-appearance'], true)
+        $section = in_array(($input['section'] ?? 'profile'), ['password'], true)
             ? (string) $input['section'] : 'profile';
 
         if (($server['REQUEST_METHOD'] ?? 'GET') === 'POST') {
@@ -45,31 +43,7 @@ final readonly class AccountController
                 $errors[] = 'Your session expired. Refresh the page and try again.';
             } else {
                 try {
-                    if ($section === 'merchandise-appearance') {
-                        if (($input['appearance_action'] ?? 'save') === 'remove') {
-                            $this->customizer->removeMerchandise($user);
-                        } else {
-                            $this->customizer->updateMerchandise(
-                                $user,
-                                (string) ($input['image_mode'] ?? 'banner'),
-                                (int) ($input['overlay'] ?? 55),
-                                isset($files['merchandise_image']) && is_array($files['merchandise_image'])
-                                    ? $files['merchandise_image'] : null,
-                            );
-                        }
-                    } elseif ($section === 'appearance') {
-                        if (($input['appearance_action'] ?? 'save') === 'remove') {
-                            $this->customizer->remove($user);
-                        } else {
-                            $this->customizer->update(
-                                $user,
-                                (string) ($input['image_mode'] ?? 'banner'),
-                                (int) ($input['overlay'] ?? 55),
-                                isset($files['dashboard_image']) && is_array($files['dashboard_image'])
-                                    ? $files['dashboard_image'] : null,
-                            );
-                        }
-                    } elseif ($section === 'password') {
+                    if ($section === 'password') {
                         $this->auth->updatePassword(
                             $user,
                             (string) ($input['current_password'] ?? ''),

@@ -35,6 +35,7 @@ final class SqliteUserRepositoryTest extends TestCase
         $user->updateUsername('player_one');
         $user->updateEmail('updated@example.com');
         $user->updateDashboardAppearance('banner.webp', 'wallpaper', 70);
+        $user->updateTheme('sonic-blue','#2788f5','#07111f','#102239','#f2f8ff','compact');
         $repository->save($user);
 
         $stored = $repository->findByUsername('PLAYER_ONE');
@@ -45,5 +46,7 @@ final class SqliteUserRepositoryTest extends TestCase
         self::assertSame('banner.webp', $stored->dashboardImage());
         self::assertSame('wallpaper', $stored->dashboardImageMode());
         self::assertSame(70, $stored->dashboardOverlay());
+        self::assertSame('sonic-blue',$stored->themePreset());
+        self::assertSame('compact',$stored->layoutDensity());
     }
 }

@@ -15,6 +15,7 @@ use GameTracker\Domain\Entity\User;
 /** @var User $currentUser */
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+$themeStyle="--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeBackground()};--panel:{$currentUser->themePanel()};--text:{$currentUser->themeText()}";
 $hours = intdiv($totalMinutes, 60);
 $remainingMinutes = $totalMinutes % 60;
 ?>
@@ -26,7 +27,7 @@ $remainingMinutes = $totalMinutes % 60;
     <title><?= $escape($game->title()) ?> Journal — ArchiveXP</title>
     <link rel="stylesheet" href="/assets/app.css">
 </head>
-<body>
+<body class="theme-<?= $escape($currentUser->themePreset()) ?> density-<?= $escape($currentUser->layoutDensity()) ?>" style="<?= $escape($themeStyle) ?>">
     <header class="site-header journal-header">
         <div>
             <a class="back-link" href="/">← Back to collection</a>
@@ -46,6 +47,7 @@ $remainingMinutes = $totalMinutes % 60;
             <span><small>Signed in as</small><strong><?= $escape($currentUser->displayName()) ?></strong></span>
         </div>
         <a class="account-button" href="/?route=account">My Account</a>
+        <a class="account-button" href="/?route=appearance">Appearance</a>
         <form method="post" action="/?route=logout">
             <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
             <button class="logout-button" type="submit">Sign out</button>

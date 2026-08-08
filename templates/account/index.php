@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+$themeStyle="--accent:{$user->themeAccent()};--bg:{$user->themeBackground()};--panel:{$user->themePanel()};--text:{$user->themeText()}";
 ?>
 <!doctype html>
 <html lang="en">
@@ -16,16 +17,17 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     <title>My Account — ArchiveXP</title>
     <link rel="stylesheet" href="/assets/app.css">
 </head>
-<body>
+<body class="theme-<?= $escape($user->themePreset()) ?> density-<?= $escape($user->layoutDensity()) ?>" style="<?= $escape($themeStyle) ?>">
     <header class="site-header account-header">
         <div>
             <a class="back-link" href="/">← Back to collection</a>
             <p class="eyebrow">Player settings</p>
             <h1>My Account</h1>
-            <p class="lede">Manage your profile, security, and dashboard style.</p>
+            <p class="lede">Manage your profile and account security.</p>
         </div>
     </header>
 
+    <nav class="section-switcher settings-switcher"><a class="is-active" href="/?route=account">My Account</a><a href="/?route=appearance">Appearance</a></nav>
     <main class="account-layout">
         <section class="panel account-card">
             <div class="panel-heading">
@@ -63,65 +65,6 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
             </form>
         </section>
 
-        <section class="panel appearance-panel">
-            <div class="panel-heading">
-                <div><p class="eyebrow">Personalisation</p><h2>Dashboard appearance</h2></div>
-                <p class="section-description">Add a personal backdrop while keeping your collection easy to read.</p>
-            </div>
-            <?php if ($section === 'appearance' && $errors !== []): ?>
-                <div class="alert alert-error" role="alert"><?php foreach ($errors as $error): ?><p><?= $escape($error) ?></p><?php endforeach; ?></div>
-            <?php endif; ?>
-            <?php if ($saved === 'appearance'): ?><div class="alert alert-success">Dashboard appearance updated.</div><?php endif; ?>
-            <div class="appearance-grid">
-                <div class="appearance-preview <?= $user->dashboardImage() === null ? 'is-empty' : '' ?>" <?= $user->dashboardImage() !== null ? 'style="--dashboard-image: url(\'/?route=dashboard-image\'); --dashboard-overlay: ' . ($user->dashboardOverlay() / 100) . '"' : '' ?>>
-                    <?php if ($user->dashboardImage() === null): ?><span>Your image preview will appear here</span><?php endif; ?>
-                </div>
-                <form method="post" action="/?route=account" class="game-form appearance-form" enctype="multipart/form-data">
-                    <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
-                    <input type="hidden" name="section" value="appearance">
-                    <label><span>Choose an image</span><input type="file" name="dashboard_image" accept="image/jpeg,image/png,image/webp"></label>
-                    <p class="field-help">JPEG, PNG, or WebP, up to 5 MB.</p>
-                    <label><span>Display style</span><select name="image_mode"><option value="banner" <?= $user->dashboardImageMode() === 'banner' ? 'selected' : '' ?>>Header banner</option><option value="wallpaper" <?= $user->dashboardImageMode() === 'wallpaper' ? 'selected' : '' ?>>Page wallpaper</option></select></label>
-                    <label><span>Dark overlay: <output id="overlay-output"><?= $user->dashboardOverlay() ?>%</output></span><input type="range" name="overlay" min="20" max="90" value="<?= $user->dashboardOverlay() ?>" oninput="document.getElementById('overlay-output').value = this.value + '%'" /></label>
-                    <div class="appearance-actions">
-                        <button class="primary-button" type="submit">Save appearance</button>
-                        <?php if ($user->dashboardImage() !== null): ?>
-                            <button class="danger-button" type="submit" name="appearance_action" value="remove">Remove image</button>
-                        <?php endif; ?>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-        <section class="panel appearance-panel">
-            <div class="panel-heading">
-                <div><p class="eyebrow">Personalisation</p><h2>Merchandise appearance</h2></div>
-                <p class="section-description">Choose separate artwork for your physical collection.</p>
-            </div>
-            <?php if ($section === 'merchandise-appearance' && $errors !== []): ?>
-                <div class="alert alert-error" role="alert"><?php foreach ($errors as $error): ?><p><?= $escape($error) ?></p><?php endforeach; ?></div>
-            <?php endif; ?>
-            <?php if ($saved === 'merchandise-appearance'): ?><div class="alert alert-success">Merchandise appearance updated.</div><?php endif; ?>
-            <div class="appearance-grid">
-                <div class="appearance-preview <?= $user->merchandiseImage() === null ? 'is-empty' : '' ?>" <?= $user->merchandiseImage() !== null ? 'style="--dashboard-image: url(\'/?route=merchandise-image\'); --dashboard-overlay: ' . ($user->merchandiseOverlay() / 100) . '"' : '' ?>>
-                    <?php if ($user->merchandiseImage() === null): ?><span>Your merchandise image preview will appear here</span><?php endif; ?>
-                </div>
-                <form method="post" action="/?route=account" class="game-form appearance-form" enctype="multipart/form-data">
-                    <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
-                    <input type="hidden" name="section" value="merchandise-appearance">
-                    <label><span>Choose an image</span><input type="file" name="merchandise_image" accept="image/jpeg,image/png,image/webp"></label>
-                    <p class="field-help">JPEG, PNG, or WebP, up to 5 MB.</p>
-                    <label><span>Display style</span><select name="image_mode"><option value="banner" <?= $user->merchandiseImageMode() === 'banner' ? 'selected' : '' ?>>Header banner</option><option value="wallpaper" <?= $user->merchandiseImageMode() === 'wallpaper' ? 'selected' : '' ?>>Page wallpaper</option></select></label>
-                    <label><span>Dark overlay: <output id="merchandise-overlay-output"><?= $user->merchandiseOverlay() ?>%</output></span><input type="range" name="overlay" min="20" max="90" value="<?= $user->merchandiseOverlay() ?>" oninput="document.getElementById('merchandise-overlay-output').value = this.value + '%'" /></label>
-                    <div class="appearance-actions">
-                        <button class="primary-button" type="submit">Save merchandise appearance</button>
-                        <?php if ($user->merchandiseImage() !== null): ?>
-                            <button class="danger-button" type="submit" name="appearance_action" value="remove">Remove image</button>
-                        <?php endif; ?>
-                    </div>
-                </form>
-            </div>
-        </section>
     </main>
 </body>
 </html>

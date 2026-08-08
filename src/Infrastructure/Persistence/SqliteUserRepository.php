@@ -30,12 +30,17 @@ final readonly class SqliteUserRepository implements UserRepository
                 merchandise_image TEXT NULL,
                 merchandise_image_mode TEXT NOT NULL DEFAULT 'banner',
                 merchandise_overlay INTEGER NOT NULL DEFAULT 55,
+                theme_preset TEXT NOT NULL DEFAULT 'archive-purple',
+                theme_accent TEXT NOT NULL DEFAULT '#7c5cff', theme_background TEXT NOT NULL DEFAULT '#0b0d12',
+                theme_panel TEXT NOT NULL DEFAULT '#141821', theme_text TEXT NOT NULL DEFAULT '#f5f7fb',
+                layout_density TEXT NOT NULL DEFAULT 'spacious',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )"
         );
 
         $this->migrateUsername();
         $this->migrateDashboardAppearance();
+        $this->migrateTheme();
     }
 
     /** Inserts a new user or updates an existing account. */
@@ -51,12 +56,14 @@ final readonly class SqliteUserRepository implements UserRepository
             'merchandise_image' => $user->merchandiseImage(),
             'merchandise_image_mode' => $user->merchandiseImageMode(),
             'merchandise_overlay' => $user->merchandiseOverlay(),
+            'theme_preset'=>$user->themePreset(),'theme_accent'=>$user->themeAccent(),'theme_background'=>$user->themeBackground(),
+            'theme_panel'=>$user->themePanel(),'theme_text'=>$user->themeText(),'layout_density'=>$user->layoutDensity(),
         ];
 
         if ($user->id() === null) {
             $statement = $this->connection->prepare(
-                'INSERT INTO users (username, email, password_hash, dashboard_image, dashboard_image_mode, dashboard_overlay, merchandise_image, merchandise_image_mode, merchandise_overlay)
-                 VALUES (:username, :email, :password_hash, :dashboard_image, :dashboard_image_mode, :dashboard_overlay, :merchandise_image, :merchandise_image_mode, :merchandise_overlay)'
+                'INSERT INTO users (username, email, password_hash, dashboard_image, dashboard_image_mode, dashboard_overlay, merchandise_image, merchandise_image_mode, merchandise_overlay, theme_preset, theme_accent, theme_background, theme_panel, theme_text, layout_density)
+                 VALUES (:username, :email, :password_hash, :dashboard_image, :dashboard_image_mode, :dashboard_overlay, :merchandise_image, :merchandise_image_mode, :merchandise_overlay, :theme_preset, :theme_accent, :theme_background, :theme_panel, :theme_text, :layout_density)'
             );
             $statement->execute($parameters);
             $user->assignId((int) $this->connection->lastInsertId());
@@ -68,7 +75,9 @@ final readonly class SqliteUserRepository implements UserRepository
              SET username = :username, email = :email, password_hash = :password_hash,
                  dashboard_image = :dashboard_image, dashboard_image_mode = :dashboard_image_mode,
                  dashboard_overlay = :dashboard_overlay, merchandise_image = :merchandise_image,
-                 merchandise_image_mode = :merchandise_image_mode, merchandise_overlay = :merchandise_overlay
+                 merchandise_image_mode = :merchandise_image_mode, merchandise_overlay = :merchandise_overlay,
+                 theme_preset=:theme_preset, theme_accent=:theme_accent, theme_background=:theme_background,
+                 theme_panel=:theme_panel, theme_text=:theme_text, layout_density=:layout_density
              WHERE id = :id'
         );
         $statement->execute([...$parameters, 'id' => $user->id()]);
@@ -121,6 +130,8 @@ final readonly class SqliteUserRepository implements UserRepository
             merchandiseImage: $row['merchandise_image'] === null ? null : (string) $row['merchandise_image'],
             merchandiseImageMode: (string) $row['merchandise_image_mode'],
             merchandiseOverlay: (int) $row['merchandise_overlay'],
+            themePreset:(string)$row['theme_preset'],themeAccent:(string)$row['theme_accent'],themeBackground:(string)$row['theme_background'],
+            themePanel:(string)$row['theme_panel'],themeText:(string)$row['theme_text'],layoutDensity:(string)$row['layout_density'],
         );
     }
 
@@ -162,5 +173,17 @@ final readonly class SqliteUserRepository implements UserRepository
         if (!in_array('merchandise_overlay', $columns, true)) {
             $this->connection->exec('ALTER TABLE users ADD COLUMN merchandise_overlay INTEGER NOT NULL DEFAULT 55');
         }
+    }
+
+    /** Adds theme and layout preferences to legacy user tables. */
+    private function migrateTheme(): void
+    {
+        $columns = array_column($this->connection->query('PRAGMA table_info(users)')->fetchAll(), 'name');
+        $definitions = [
+            'theme_preset'=>"TEXT NOT NULL DEFAULT 'archive-purple'",'theme_accent'=>"TEXT NOT NULL DEFAULT '#7c5cff'",
+            'theme_background'=>"TEXT NOT NULL DEFAULT '#0b0d12'",'theme_panel'=>"TEXT NOT NULL DEFAULT '#141821'",
+            'theme_text'=>"TEXT NOT NULL DEFAULT '#f5f7fb'",'layout_density'=>"TEXT NOT NULL DEFAULT 'spacious'",
+        ];
+        foreach ($definitions as $column=>$definition) if (!in_array($column,$columns,true)) $this->connection->exec("ALTER TABLE users ADD COLUMN {$column} {$definition}");
     }
 }

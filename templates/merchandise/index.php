@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+$themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeBackground()};--panel:{$currentUser->themePanel()};--text:{$currentUser->themeText()};";
 ?>
 <!doctype html>
 <html lang="en">
@@ -17,7 +18,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     <link rel="stylesheet" href="/assets/app.css">
     <script src="/assets/barcode.js" defer></script>
 </head>
-<body class="<?= $currentUser->merchandiseImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->merchandiseImageMode()) : '' ?>" style="<?= $currentUser->merchandiseImage() !== null ? '--dashboard-image: url(\'/?route=merchandise-image\'); --dashboard-overlay: ' . ($currentUser->merchandiseOverlay() / 100) : '' ?>">
+<body class="theme-<?= $escape($currentUser->themePreset()) ?> density-<?= $escape($currentUser->layoutDensity()) ?> <?= $currentUser->merchandiseImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->merchandiseImageMode()) : '' ?>" style="<?= $escape($themeStyle) ?><?= $currentUser->merchandiseImage() !== null ? '--dashboard-image:url(\'/?route=merchandise-image\');--dashboard-overlay:' . ($currentUser->merchandiseOverlay()/100) : '' ?>">
     <header class="site-header merchandise-header">
         <div><p class="eyebrow">Physical collection</p><h1>Merchandise</h1><p class="lede">Track figures, statues, Pop Vinyls, LEGO, and everything on your shelf.</p></div>
         <div class="summary"><strong><?= count($allItems) ?></strong><span><?= count($allItems) === 1 ? 'item' : 'items' ?></span></div>
@@ -29,6 +30,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
             <span><small>Signed in as</small><strong><?= $escape($currentUser->displayName()) ?></strong></span>
         </div>
         <a class="account-button" href="/?route=account">My Account</a>
+        <a class="account-button" href="/?route=appearance">Appearance</a>
         <form method="post" action="/?route=logout">
             <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
             <button class="logout-button" type="submit">Sign out</button>
