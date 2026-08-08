@@ -132,10 +132,11 @@ if ($currentUser === null) {
 
 $library = new GameLibrary($gameRepository, $currentUser->id());
 $merchandiseCollection = new MerchandiseCollection(new SqliteMerchandiseRepository($connection), $currentUser->id());
+$collectionDetails = new CollectionDetails($library, $merchandiseCollection, new SqliteCollectionMetadataRepository($connection), $currentUser->id());
 
 if ($route === 'collection-details') {
     $detailsController = new CollectionDetailsController(
-        new CollectionDetails($library, $merchandiseCollection, new SqliteCollectionMetadataRepository($connection), $currentUser->id()),
+        $collectionDetails,
         $csrf,
         $currentUser,
         $root . '/templates/collection/details.php',
@@ -159,6 +160,7 @@ if ($route === 'game') {
 if ($route === 'merchandise') {
     $merchandiseController = new MerchandiseController(
         $merchandiseCollection,
+        $collectionDetails,
         $csrf,
         $root . '/templates/merchandise/index.php',
         $currentUser,
@@ -239,6 +241,7 @@ $controller = new GameController(
     $root . '/templates/games/index.php',
     $currentUser,
     $coverManager,
+    $collectionDetails,
 );
 
 $controller->handle($_SERVER, $_GET, $_POST, $_FILES);

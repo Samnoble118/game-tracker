@@ -12,6 +12,7 @@ This project follows [Semantic Versioning](https://semver.org/):
 
 ### Added
 
+- Camera and manual barcode capture with cross-collection duplicate warnings and a future product-provider interface.
 - Unified game and merchandise metadata for franchises, characters, storage locations, condition, and private purchase records.
 - Username-or-email authentication and paginated franchise connections.
 - Private game journals with 1–5 ratings, dated play sessions, playtime, progress snapshots, notes, and custom lists.

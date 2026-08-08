@@ -17,4 +17,7 @@ interface CollectionMetadataRepository
 
     /** Finds user-scoped metadata for one collection record. */
     public function find(CollectionItemType $type, int $itemId, int $userId): ?CollectionMetadata;
+
+    /** Returns metadata records sharing a barcode for one user. @return list<CollectionMetadata> */
+    public function findByBarcode(string $barcode, int $userId): array;
 }

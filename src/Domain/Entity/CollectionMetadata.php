@@ -22,6 +22,7 @@ final readonly class CollectionMetadata
         private int $userId,
         private string $franchise = '',
         private string $characters = '',
+        private string $barcode = '',
         private string $location = '',
         private ItemCondition $condition = ItemCondition::Unspecified,
         private ItemPackaging $packaging = ItemPackaging::Unspecified,
@@ -36,6 +37,7 @@ final readonly class CollectionMetadata
         if ($itemId < 1 || $userId < 1) throw new InvalidArgumentException('A valid item and user are required.');
         if ($purchasePricePence !== null && ($purchasePricePence < 0 || $purchasePricePence > 999_999_999)) throw new InvalidArgumentException('Enter a valid purchase price.');
         if (!preg_match('/^[A-Z]{3}$/', $currency)) throw new InvalidArgumentException('Currency must use a three-letter code.');
+        if ($barcode !== '' && preg_match('/^\d{8,14}$/', $barcode) !== 1) throw new InvalidArgumentException('Barcodes must contain 8 to 14 digits.');
         foreach ([$franchise, $characters, $location, $retailer, $serialNumber, $receiptReference] as $value) {
             if (strlen($value) > 255) throw new InvalidArgumentException('Collection details cannot exceed 255 characters per field.');
         }
@@ -47,6 +49,7 @@ final readonly class CollectionMetadata
     /** Returns the owning user ID. */ public function userId(): int { return $this->userId; }
     /** Returns the shared franchise name. */ public function franchise(): string { return $this->franchise; }
     /** Returns comma-separated characters. */ public function characters(): string { return $this->characters; }
+    /** Returns the UPC, EAN, or GTIN barcode digits. */ public function barcode(): string { return $this->barcode; }
     /** Returns the shelf, cabinet, room, or storage location. */ public function location(): string { return $this->location; }
     /** Returns the recorded physical condition. */ public function condition(): ItemCondition { return $this->condition; }
     /** Returns how the item is packaged or held. */ public function packaging(): ItemPackaging { return $this->packaging; }
