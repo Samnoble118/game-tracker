@@ -101,7 +101,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
                     <h2 id="game-form-title"><?= $form['id'] === '' ? 'Add a game' : 'Edit game' ?></h2>
                 </div>
                 <?php if ($form['id'] !== ''): ?>
-                    <a class="text-link" href="/?route=games&amp;view=<?= $activeView ?>">Cancel</a>
+                    <a class="text-link" href="/?<?= $escape(http_build_query([...$filterQuery, 'page' => $currentPage])) ?>#add-game">Cancel</a>
                 <?php endif; ?>
             </div>
 
@@ -223,7 +223,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
                                             <?= ucfirst($game->status()->value) ?>
                                         </span>
                                     </div>
-                                    <a class="text-link" href="/?route=games&amp;view=<?= $activeView ?>&amp;edit=<?= $game->id() ?>">Edit</a>
+                                    <a class="text-link" href="/?<?= $escape(http_build_query([...$filterQuery, 'page' => $currentPage, 'edit' => $game->id()])) ?>#add-game">Edit</a>
                                 </div>
                                 <h3><?= $escape($game->title()) ?></h3>
                                 <p class="platform"><?= $escape($game->platform()) ?></p>
