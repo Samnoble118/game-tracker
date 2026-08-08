@@ -39,7 +39,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
     </div>
 
     <nav class="section-switcher" aria-label="Tracker sections">
-        <a href="/">Games</a><a class="is-active" href="/?route=merchandise" aria-current="page">Merchandise</a>
+        <a href="/">Games</a><a class="is-active" href="/?route=merchandise" aria-current="page">Merchandise</a><a href="/?route=franchises">Franchises</a>
     </nav>
 
     <nav class="collection-tabs merchandise-collections" aria-label="Merchandise collections">

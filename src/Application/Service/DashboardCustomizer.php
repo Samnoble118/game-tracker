@@ -74,6 +74,25 @@ final readonly class DashboardCustomizer
         $this->users->save($user);
     }
 
+    /** Updates Franchise Atlas artwork and safely stores an optional replacement image. @param array<string, mixed>|null $upload */
+    public function updateFranchise(User $user, string $mode, int $overlay, ?array $upload): void
+    {
+        $filename = $user->franchiseImage();
+        if ($upload !== null && (int) ($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            $filename = $this->storeUpload($user, $upload, 'franchise');
+        }
+        $user->updateFranchiseAppearance($filename, $mode, $overlay);
+        $this->users->save($user);
+    }
+
+    /** Removes custom Franchise Atlas artwork and restores its defaults. */
+    public function removeFranchise(User $user): void
+    {
+        $this->deleteFranchiseExisting($user);
+        $user->updateFranchiseAppearance(null, 'banner', 55);
+        $this->users->save($user);
+    }
+
     /** Applies a preset or validated custom colour palette. */
     public function updateTheme(User $user, string $preset, string $accent, string $background, string $panel, string $text, string $density): void
     {
@@ -103,6 +122,12 @@ final readonly class DashboardCustomizer
     public function merchandisePathFor(User $user): ?string
     {
         return $this->pathForFilename($user->merchandiseImage());
+    }
+
+    /** Resolves the private Franchise Atlas artwork path for the supplied user. */
+    public function franchisePathFor(User $user): ?string
+    {
+        return $this->pathForFilename($user->franchiseImage());
     }
 
     /** Resolves a safe private path for a stored artwork filename. */
@@ -146,7 +171,11 @@ final readonly class DashboardCustomizer
             throw new InvalidArgumentException('The upload directory is unavailable.');
         }
 
-        $target === 'merchandise' ? $this->deleteMerchandiseExisting($user) : $this->deleteExisting($user);
+        match ($target) {
+            'merchandise' => $this->deleteMerchandiseExisting($user),
+            'franchise' => $this->deleteFranchiseExisting($user),
+            default => $this->deleteExisting($user),
+        };
         $filename = sprintf('user-%d-%s-%s.%s', $user->id(), $target, bin2hex(random_bytes(12)), $extensions[$mime]);
         if (!move_uploaded_file($temporaryPath, $this->uploadPath . '/' . $filename)) {
             throw new InvalidArgumentException('The image could not be saved.');
@@ -168,6 +197,15 @@ final readonly class DashboardCustomizer
     private function deleteMerchandiseExisting(User $user): void
     {
         $path = $this->merchandisePathFor($user);
+        if ($path !== null) {
+            unlink($path);
+        }
+    }
+
+    /** Deletes the user's previous Franchise Atlas artwork file when it exists. */
+    private function deleteFranchiseExisting(User $user): void
+    {
+        $path = $this->franchisePathFor($user);
         if ($path !== null) {
             unlink($path);
         }

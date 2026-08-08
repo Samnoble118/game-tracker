@@ -30,6 +30,9 @@ final readonly class SqliteUserRepository implements UserRepository
                 merchandise_image TEXT NULL,
                 merchandise_image_mode TEXT NOT NULL DEFAULT 'banner',
                 merchandise_overlay INTEGER NOT NULL DEFAULT 55,
+                franchise_image TEXT NULL,
+                franchise_image_mode TEXT NOT NULL DEFAULT 'banner',
+                franchise_overlay INTEGER NOT NULL DEFAULT 55,
                 theme_preset TEXT NOT NULL DEFAULT 'archive-purple',
                 theme_accent TEXT NOT NULL DEFAULT '#7c5cff', theme_background TEXT NOT NULL DEFAULT '#0b0d12',
                 theme_panel TEXT NOT NULL DEFAULT '#141821', theme_text TEXT NOT NULL DEFAULT '#f5f7fb',
@@ -61,6 +64,9 @@ final readonly class SqliteUserRepository implements UserRepository
             'merchandise_image' => $user->merchandiseImage(),
             'merchandise_image_mode' => $user->merchandiseImageMode(),
             'merchandise_overlay' => $user->merchandiseOverlay(),
+            'franchise_image' => $user->franchiseImage(),
+            'franchise_image_mode' => $user->franchiseImageMode(),
+            'franchise_overlay' => $user->franchiseOverlay(),
             'theme_preset'=>$user->themePreset(),'theme_accent'=>$user->themeAccent(),'theme_background'=>$user->themeBackground(),
             'theme_panel'=>$user->themePanel(),'theme_text'=>$user->themeText(),'layout_density'=>$user->layoutDensity(),
             'profile_display_name'=>$user->profileDisplayName(), 'profile_bio'=>$user->profileBio(),
@@ -69,8 +75,8 @@ final readonly class SqliteUserRepository implements UserRepository
 
         if ($user->id() === null) {
             $statement = $this->connection->prepare(
-                'INSERT INTO users (username, email, password_hash, dashboard_image, dashboard_image_mode, dashboard_overlay, merchandise_image, merchandise_image_mode, merchandise_overlay, theme_preset, theme_accent, theme_background, theme_panel, theme_text, layout_density, profile_display_name, profile_bio, profile_public, profile_image)
-                 VALUES (:username, :email, :password_hash, :dashboard_image, :dashboard_image_mode, :dashboard_overlay, :merchandise_image, :merchandise_image_mode, :merchandise_overlay, :theme_preset, :theme_accent, :theme_background, :theme_panel, :theme_text, :layout_density, :profile_display_name, :profile_bio, :profile_public, :profile_image)'
+                'INSERT INTO users (username, email, password_hash, dashboard_image, dashboard_image_mode, dashboard_overlay, merchandise_image, merchandise_image_mode, merchandise_overlay, franchise_image, franchise_image_mode, franchise_overlay, theme_preset, theme_accent, theme_background, theme_panel, theme_text, layout_density, profile_display_name, profile_bio, profile_public, profile_image)
+                 VALUES (:username, :email, :password_hash, :dashboard_image, :dashboard_image_mode, :dashboard_overlay, :merchandise_image, :merchandise_image_mode, :merchandise_overlay, :franchise_image, :franchise_image_mode, :franchise_overlay, :theme_preset, :theme_accent, :theme_background, :theme_panel, :theme_text, :layout_density, :profile_display_name, :profile_bio, :profile_public, :profile_image)'
             );
             $statement->execute($parameters);
             $user->assignId((int) $this->connection->lastInsertId());
@@ -83,6 +89,8 @@ final readonly class SqliteUserRepository implements UserRepository
                  dashboard_image = :dashboard_image, dashboard_image_mode = :dashboard_image_mode,
                  dashboard_overlay = :dashboard_overlay, merchandise_image = :merchandise_image,
                  merchandise_image_mode = :merchandise_image_mode, merchandise_overlay = :merchandise_overlay,
+                 franchise_image = :franchise_image, franchise_image_mode = :franchise_image_mode,
+                 franchise_overlay = :franchise_overlay,
                  theme_preset=:theme_preset, theme_accent=:theme_accent, theme_background=:theme_background,
                  theme_panel=:theme_panel, theme_text=:theme_text, layout_density=:layout_density,
                  profile_display_name=:profile_display_name, profile_bio=:profile_bio,
@@ -139,6 +147,9 @@ final readonly class SqliteUserRepository implements UserRepository
             merchandiseImage: $row['merchandise_image'] === null ? null : (string) $row['merchandise_image'],
             merchandiseImageMode: (string) $row['merchandise_image_mode'],
             merchandiseOverlay: (int) $row['merchandise_overlay'],
+            franchiseImage: $row['franchise_image'] === null ? null : (string) $row['franchise_image'],
+            franchiseImageMode: (string) $row['franchise_image_mode'],
+            franchiseOverlay: (int) $row['franchise_overlay'],
             themePreset:(string)$row['theme_preset'],themeAccent:(string)$row['theme_accent'],themeBackground:(string)$row['theme_background'],
             themePanel:(string)$row['theme_panel'],themeText:(string)$row['theme_text'],layoutDensity:(string)$row['layout_density'],
             profileDisplayName:(string)$row['profile_display_name'], profileBio:(string)$row['profile_bio'],
@@ -183,6 +194,15 @@ final readonly class SqliteUserRepository implements UserRepository
         }
         if (!in_array('merchandise_overlay', $columns, true)) {
             $this->connection->exec('ALTER TABLE users ADD COLUMN merchandise_overlay INTEGER NOT NULL DEFAULT 55');
+        }
+        if (!in_array('franchise_image', $columns, true)) {
+            $this->connection->exec('ALTER TABLE users ADD COLUMN franchise_image TEXT NULL');
+        }
+        if (!in_array('franchise_image_mode', $columns, true)) {
+            $this->connection->exec("ALTER TABLE users ADD COLUMN franchise_image_mode TEXT NOT NULL DEFAULT 'banner'");
+        }
+        if (!in_array('franchise_overlay', $columns, true)) {
+            $this->connection->exec('ALTER TABLE users ADD COLUMN franchise_overlay INTEGER NOT NULL DEFAULT 55');
         }
     }
 

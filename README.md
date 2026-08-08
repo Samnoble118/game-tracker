@@ -26,6 +26,13 @@ in, the shareable cabinet shows game progress and safe merchandise catalogue
 details while excluding email addresses, prices, receipts, serial numbers,
 storage locations, barcodes, and private notes.
 
+## Franchise Collection Atlas
+
+The **Franchises** section connects games, merchandise, platforms, and character
+tags into browsable franchise hubs. Collectors can add measurable collection
+quests, see wishlist gaps, track game completion, and share a privacy-safe
+franchise page when their Display Cabinet is public.
+
 ## Collection data transfers
 
 Signed-in users can open **My Account → Data tools** to import or export games

@@ -58,6 +58,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
     <nav class="section-switcher" aria-label="Tracker sections">
         <a class="is-active" href="/" aria-current="page">Games</a>
         <a href="/?route=merchandise">Merchandise</a>
+        <a href="/?route=franchises">Franchises</a>
     </nav>
 
     <nav class="collection-tabs" aria-label="Game collections">
