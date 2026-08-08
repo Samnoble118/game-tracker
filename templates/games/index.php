@@ -212,7 +212,10 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                                 <p class="platform"><?= $escape($game->platform()) ?></p>
                                 <div class="progress-label"><span>Progress</span><strong><?= $game->progress() ?>%</strong></div>
                                 <div class="progress-track" aria-label="<?= $game->progress() ?>% complete"><span style="width: <?= $game->progress() ?>%"></span></div>
-                                <?php if ($game->supportsTrophies()): ?><a class="trophy-link" href="/?trophies=<?= $game->id() ?>">Manage trophies <span aria-hidden="true">→</span></a><?php endif; ?>
+                                <div class="card-actions">
+                                    <a class="journal-link" href="/?route=game&amp;id=<?= $game->id() ?>">Open game journal <span aria-hidden="true">→</span></a>
+                                    <?php if ($game->supportsTrophies()): ?><a class="trophy-link" href="/?trophies=<?= $game->id() ?>">Manage trophies <span aria-hidden="true">→</span></a><?php endif; ?>
+                                </div>
                             </div>
                         </article>
                     <?php endforeach; ?>

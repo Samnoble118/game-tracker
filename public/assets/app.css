@@ -266,6 +266,10 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
 .text-link:hover { text-decoration: underline; }
 .trophy-link { display: flex; justify-content: space-between; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); color: #f2c76e; font-size: .8rem; font-weight: 800; text-decoration: none; }
 .trophy-link:hover { color: #ffe4a8; }
+.card-actions { display: grid; margin-top: 18px; border-top: 1px solid var(--line); }
+.card-actions .trophy-link, .journal-link { display: flex; justify-content: space-between; margin: 0; padding-top: 12px; border: 0; }
+.journal-link { color: var(--accent-bright); font-size: .8rem; font-weight: 800; text-decoration: none; }
+.journal-link:hover { color: white; }
 
 .alert { margin-bottom: 18px; padding: 12px 14px; border-radius: 10px; font-size: .88rem; }
 .alert p { margin: 0; }
@@ -352,11 +356,31 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
 .merchandise-meta { display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: .76rem; }
 .merchandise-meta strong { color: var(--text); }
 .merchandise-notes { margin: 12px 0 0; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+.journal-header h1 { font-size: clamp(2.4rem, 6vw, 4.8rem); }
+.journal-alert { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
+.journal-layout { display: grid; grid-template-columns: minmax(280px, .7fr) minmax(0, 1.45fr); gap: 22px; width: min(1180px, calc(100% - 40px)); margin: 0 auto 64px; }
+.journal-sidebar, .journal-main { display: grid; align-content: start; gap: 22px; }
+.rating-value { color: #f2c76e; font-size: 1.25rem; }
+.journal-help { margin: 0 0 18px; line-height: 1.5; }
+.custom-list-stack { display: grid; gap: 8px; }
+.list-membership { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #0f131a; }
+.list-membership .checkbox-label { flex: 1; }
+.list-create-form { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.play-log-list { display: grid; gap: 12px; }
+.play-log-item { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-soft); }
+.play-log-date { display: grid; align-content: center; justify-items: center; min-height: 70px; border-radius: 11px; background: #211b40; text-align: center; }
+.play-log-date strong { font-size: 1.45rem; }
+.play-log-date span { color: var(--muted); font-size: .65rem; text-transform: uppercase; }
+.play-log-details h3 { font-size: .95rem; }
+.play-log-details h3 span { color: var(--muted); font-size: .76rem; font-weight: 600; }
+.play-log-details p { margin: 8px 0 0; color: #c8d0dc; font-size: .8rem; line-height: 1.55; }
+.play-log-details .muted-note { color: var(--muted); font-style: italic; }
 
 @media (max-width: 820px) {
     .site-header { padding-top: 40px; }
     .layout { grid-template-columns: 1fr; }
     .trophy-layout { grid-template-columns: 1fr; }
+    .journal-layout { grid-template-columns: 1fr; }
     .form-panel { position: static; }
     .collection-tabs { display: flex; overflow-x: auto; padding-bottom: 5px; }
     .collection-tab { flex: 0 0 auto; min-width: 135px; }
@@ -370,7 +394,7 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
 }
 
 @media (max-width: 560px) {
-    .site-header, .account-bar, .section-switcher, .collection-tabs, .library-tools, .layout { width: min(100% - 24px, 1180px); }
+    .site-header, .account-bar, .section-switcher, .collection-tabs, .library-tools, .layout, .journal-layout, .journal-alert { width: min(100% - 24px, 1180px); }
     .account-layout { width: min(100% - 24px, 920px); }
     .site-header { align-items: start; }
     .summary { min-width: 82px; padding: 12px; }

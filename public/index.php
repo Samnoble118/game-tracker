@@ -9,11 +9,13 @@ declare(strict_types=1);
 use GameTracker\Application\Http\AuthController;
 use GameTracker\Application\Http\AccountController;
 use GameTracker\Application\Http\GameController;
+use GameTracker\Application\Http\GameJournalController;
 use GameTracker\Application\Http\MerchandiseController;
 use GameTracker\Application\Http\TrophyController;
 use GameTracker\Application\Service\Authenticator;
 use GameTracker\Application\Service\DashboardCustomizer;
 use GameTracker\Application\Service\GameLibrary;
+use GameTracker\Application\Service\GameJournal;
 use GameTracker\Application\Service\GameCoverManager;
 use GameTracker\Application\Service\MerchandiseCollection;
 use GameTracker\Application\Service\TrophyCabinet;
@@ -22,6 +24,7 @@ use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Core\Http\SecurityHeaders;
 use GameTracker\Core\Security\RateLimiter;
 use GameTracker\Infrastructure\Persistence\SqliteGameRepository;
+use GameTracker\Infrastructure\Persistence\SqliteGameJournalRepository;
 use GameTracker\Infrastructure\Persistence\SqliteMerchandiseRepository;
 use GameTracker\Infrastructure\Persistence\SqliteTrophyRepository;
 use GameTracker\Infrastructure\Persistence\SqliteUserRepository;
@@ -125,6 +128,18 @@ if ($currentUser === null) {
 }
 
 $library = new GameLibrary($gameRepository, $currentUser->id());
+
+if ($route === 'game') {
+    $journalController = new GameJournalController(
+        $library,
+        new GameJournal($library, new SqliteGameJournalRepository($connection), $currentUser->id()),
+        $csrf,
+        $currentUser,
+        $root . '/templates/games/journal.php',
+    );
+    $journalController->handle($_SERVER, $_GET, $_POST);
+    return;
+}
 
 if ($route === 'merchandise') {
     $merchandiseController = new MerchandiseController(
