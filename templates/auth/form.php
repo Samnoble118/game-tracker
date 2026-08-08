@@ -41,10 +41,17 @@ $registering = $mode === 'register';
 
             <form method="post" action="/?route=<?= $mode ?>" class="game-form">
                 <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
-                <label>
-                    <span>Email address</span>
-                    <input type="email" name="email" value="<?= $escape($email) ?>" required autocomplete="email">
-                </label>
+                <?php if ($registering): ?>
+                    <label>
+                        <span>Email address</span>
+                        <input type="email" name="email" value="<?= $escape($email) ?>" required autocomplete="email">
+                    </label>
+                <?php else: ?>
+                    <label>
+                        <span>Username or email address</span>
+                        <input name="identifier" value="<?= $escape($identifier) ?>" required autocomplete="username">
+                    </label>
+                <?php endif; ?>
                 <label>
                     <span>Password</span>
                     <input type="password" name="password" required minlength="10" autocomplete="<?= $registering ? 'new-password' : 'current-password' ?>">

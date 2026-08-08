@@ -38,10 +38,11 @@ final readonly class AuthController
         $mode = $mode === 'register' ? 'register' : 'login';
         $errors = [];
         $email = trim((string) ($input['email'] ?? ''));
+        $identifier = trim((string) ($input['identifier'] ?? $email));
 
         if (($server['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $remoteAddress = (string) ($server['REMOTE_ADDR'] ?? 'unknown');
-            $rateLimitKey = $mode . '|' . $remoteAddress . '|' . strtolower($email);
+            $rateLimitKey = $mode . '|' . $remoteAddress . '|' . strtolower($mode === 'register' ? $email : $identifier);
             $maximumAttempts = $mode === 'register' ? 3 : 5;
             $windowSeconds = $mode === 'register' ? 3600 : 900;
 
@@ -61,8 +62,8 @@ final readonly class AuthController
                             (string) ($input['password_confirmation'] ?? ''),
                         );
                         $this->games->claimUnowned($user->id());
-                    } elseif ($this->auth->login($email, (string) ($input['password'] ?? '')) === null) {
-                        $errors[] = 'The email address or password is incorrect.';
+                    } elseif ($this->auth->login($identifier, (string) ($input['password'] ?? '')) === null) {
+                        $errors[] = 'The username, email address, or password is incorrect.';
                     }
                 } catch (InvalidArgumentException $exception) {
                     $errors[] = $exception->getMessage();

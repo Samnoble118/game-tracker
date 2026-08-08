@@ -89,6 +89,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                     <h3><?= $escape($item->name()) ?></h3><p class="platform"><?= $escape($item->franchise() !== '' ? $item->franchise() : 'No franchise specified') ?></p>
                     <div class="merchandise-meta"><span>Quantity</span><strong><?= $item->quantity() ?></strong></div>
                     <?php if ($item->notes() !== ''): ?><p class="merchandise-notes"><?= nl2br($escape($item->notes())) ?></p><?php endif; ?>
+                    <a class="journal-link merchandise-details-link" href="/?route=collection-details&amp;type=merchandise&amp;id=<?= $item->id() ?>">Collection details <span aria-hidden="true">→</span></a>
                 </article><?php endforeach; ?>
             </div><?php endif; ?>
         </section>
