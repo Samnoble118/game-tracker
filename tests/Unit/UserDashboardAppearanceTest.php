@@ -68,4 +68,26 @@ final class UserDashboardAppearanceTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $user->updateTheme('custom','#777777','#ffffff','#eeeeee','#dddddd','spacious');
     }
+
+    /** Confirms public profiles remain private until a collector explicitly publishes one. */
+    public function test_public_profile_is_opt_in_and_stores_safe_identity_fields(): void
+    {
+        $user = new User('player@example.com','hash',username:'player_one');
+
+        self::assertFalse($user->profilePublic());
+        $user->updatePublicProfile('Player One','Retro collector.',true,'profile.webp');
+
+        self::assertTrue($user->profilePublic());
+        self::assertSame('Player One',$user->profileDisplayName());
+        self::assertSame('Retro collector.',$user->profileBio());
+        self::assertSame('profile.webp',$user->profileImage());
+    }
+
+    /** Confirms profile biographies cannot grow beyond the public display limit. */
+    public function test_it_rejects_an_oversized_public_bio(): void
+    {
+        $user = new User('player@example.com','hash');
+        $this->expectException(InvalidArgumentException::class);
+        $user->updatePublicProfile('Player',str_repeat('a',301),true,null);
+    }
 }

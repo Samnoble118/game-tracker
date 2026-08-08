@@ -27,7 +27,7 @@ $themeStyle="--accent:{$user->themeAccent()};--bg:{$user->themeBackground()};--p
         </div>
     </header>
 
-    <nav class="section-switcher settings-switcher"><a class="is-active" href="/?route=account">My Account</a><a href="/?route=appearance">Appearance</a><a href="/?route=data-transfer">Data tools</a></nav>
+    <nav class="section-switcher settings-switcher"><a class="is-active" href="/?route=account">My Account</a><a href="/?route=appearance">Appearance</a><a href="/?route=profile-settings">Public profile</a><a href="/?route=data-transfer">Data tools</a></nav>
     <main class="account-layout">
         <section class="panel account-card">
             <div class="panel-heading">

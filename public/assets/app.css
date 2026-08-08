@@ -474,6 +474,39 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
 .bulk-import-callout a:hover { color: var(--text); }
 .bulk-transfer-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 11px; }
 .bulk-transfer-actions a+a { padding-left: 11px; border-left: 1px solid var(--line); }
+.account-avatar-image { display: block; object-fit: cover; }
+.profile-photo-row { display: grid; grid-template-columns: 104px minmax(0,1fr); align-items: center; gap: 18px; }
+.profile-photo-preview { width: 104px; height: 104px; border: 2px solid var(--accent); border-radius: 50%; object-fit: cover; background: var(--panel-soft); }
+.profile-photo-placeholder { display: grid; place-items: center; color: var(--text); background: linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent),#20dca7 45%)); font-size: 2rem; font-weight: 900; }
+.profile-settings-layout { width: min(1240px,calc(100% - 40px)); grid-template-columns: minmax(0,1.45fr) minmax(300px,.65fr); align-items: start; }
+.profile-settings-layout .account-card { min-width: 0; }
+.profile-settings-layout .game-form { grid-template-rows: none; }
+.privacy-card { display: grid; align-content: start; gap: 13px; position: sticky; top: 24px; }
+.privacy-card p { color: var(--muted); line-height: 1.65; }
+.share-profile-button { display: block; text-align: center; text-decoration: none; }
+.share-url { overflow-wrap: anywhere; padding: 10px; border-radius: 8px; color: var(--muted); background: var(--panel-soft); font-size: .68rem; }
+.public-cabinet { min-height: 100vh; }
+.public-profile-header,.public-stats,.public-filter,.public-collection,.public-footer { width: min(100% - 48px,1500px); margin-inline: auto; }
+.public-profile-header { display: grid; grid-template-columns: 140px minmax(0,1fr) auto; align-items: center; gap: 26px; padding: 70px 0 38px; }
+.public-profile-header h1 { margin: 5px 0; font-size: clamp(3rem,8vw,6.5rem); letter-spacing: -.065em; line-height: .9; }
+.public-profile-photo { width: 140px; height: 140px; border: 3px solid var(--accent); border-radius: 30px; object-fit: cover; }
+.public-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 24px; }
+.public-stats article { display: grid; gap: 4px; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); text-align: center; }
+.public-stats strong { color: var(--text); font-size: 1.8rem; }
+.public-stats span,.public-collection .panel-heading>span { color: var(--muted); font-size: .75rem; }
+.public-filter { display: grid; grid-template-columns: minmax(0,1fr) 190px auto; gap: 12px; margin-bottom: 34px; }
+.public-filter input,.public-filter select { width: 100%; }
+.public-collection { display: grid; gap: 38px; }
+.public-collection>section { padding: 28px; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); }
+.public-card-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; }
+.public-item-card { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-soft); }
+.public-item-card h3 { margin: 14px 0 5px; font-size: 1.05rem; overflow-wrap: anywhere; }
+.public-item-card>p { min-height: 2.5em; color: var(--muted); font-size: .78rem; }
+.public-item-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.public-item-meta span { padding: 5px 7px; border-radius: 999px; color: var(--muted); background: color-mix(in srgb,var(--panel),var(--text) 8%); font-size: .62rem; }
+.public-footer { padding: 44px 0; color: var(--muted); font-size: .75rem; text-align: center; }
+.public-empty { display: grid; place-items: start; gap: 14px; width: min(100% - 48px,720px); margin: 20vh auto; padding: 40px; border: 1px solid var(--line); border-radius: 22px; background: var(--panel); }
+.public-empty h1 { font-size: clamp(2.5rem,8vw,5rem); }
 
 @media (max-width: 820px) {
     .site-header { padding-top: 40px; }
@@ -491,9 +524,15 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
     .collection-tab { flex: 0 0 auto; min-width: 135px; }
     .auth-shell { grid-template-columns: 1fr; gap: 30px; }
     .account-layout { grid-template-columns: 1fr; }
+    .profile-settings-layout { width: min(100% - 40px,760px); grid-template-columns: 1fr; }
+    .privacy-card { position: static; }
     .appearance-panel { grid-column: auto; }
     .appearance-grid { grid-template-columns: 1fr; }
     .appearance-preview { min-height: 210px; }
+    .public-card-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .public-profile-header { grid-template-columns: 100px minmax(0,1fr); }
+    .public-profile-header>.account-button { grid-column: 1/-1; text-align: center; }
+    .public-profile-photo { width: 100px; height: 100px; border-radius: 22px; }
     .section-description { display: none; }
     .auth-intro h1 { font-size: clamp(3rem, 15vw, 5rem); }
 }
@@ -501,6 +540,7 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
 @media (max-width: 560px) {
     .site-header, .account-bar, .section-switcher, .collection-tabs, .library-tools, .layout, .journal-layout, .journal-alert, .details-layout, .appearance-layout { width: min(100% - 24px, 1180px); }
     .account-layout { width: min(100% - 24px, 920px); }
+    .profile-settings-layout { width: min(100% - 24px,760px); }
     .site-header { align-items: start; }
     .summary { min-width: 82px; padding: 12px; }
     .panel { padding: 20px; border-radius: 16px; }
@@ -510,6 +550,14 @@ input[type="range"] { padding: 0; accent-color: var(--accent); }
     .bulk-import-callout { align-items: stretch; flex-direction: column; }
     .bulk-transfer-actions { justify-content: space-between; }
     .export-button { text-align: center; }
+    .profile-photo-row,.public-filter { grid-template-columns: 1fr; }
+    .profile-photo-preview { width: 88px; height: 88px; }
+    .public-profile-header,.public-stats,.public-filter,.public-collection,.public-footer { width: min(100% - 24px,1500px); }
+    .public-profile-header { grid-template-columns: 72px minmax(0,1fr); gap: 15px; padding-top: 38px; }
+    .public-profile-photo { width: 72px; height: 72px; border-radius: 17px; }
+    .public-profile-header h1 { font-size: clamp(2.4rem,13vw,4rem); }
+    .public-card-grid { grid-template-columns: 1fr; }
+    .public-collection>section { padding: 20px; }
     .merchandise-grid { grid-template-columns: 1fr; }
     .game-card { grid-template-columns: 78px minmax(0, 1fr); }
     .game-cover { min-height: 126px; }

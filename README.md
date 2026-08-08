@@ -18,6 +18,14 @@ php -S localhost:8000 -t public
 
 Open <http://localhost:8000> in your browser.
 
+## Public Display Cabinets
+
+Collectors can add a profile photograph, display name, and short bio under
+**My Account → Public profile**. Profiles are private by default. After opting
+in, the shareable cabinet shows game progress and safe merchandise catalogue
+details while excluding email addresses, prices, receipts, serial numbers,
+storage locations, barcodes, and private notes.
+
 ## Collection data transfers
 
 Signed-in users can open **My Account → Data tools** to import or export games

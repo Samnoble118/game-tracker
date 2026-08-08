@@ -12,6 +12,7 @@ This project follows [Semantic Versioning](https://semver.org/):
 
 ### Added
 
+- Opt-in public Display Cabinet profiles with secure profile photographs, collection search, statistics, and privacy-safe public fields.
 - Owner-only CSV import and export with column mapping, validation preview, duplicate skipping, private fields, and import history.
 - Dedicated appearance studio with theme presets, custom accessible colours, layout density, live preview, and collection artwork controls.
 - Camera and manual barcode capture with cross-collection duplicate warnings and a future product-provider interface.

@@ -26,11 +26,12 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
 
     <div class="account-bar">
         <div class="account-identity">
-            <span class="account-avatar" aria-hidden="true"><?= strtoupper(substr($currentUser->displayName(), 0, 1)) ?></span>
+            <?php if($currentUser->profileImage()!==null): ?><img class="account-avatar account-avatar-image" src="/?route=profile-image&user=<?= rawurlencode($currentUser->username() ?? '') ?>" alt=""><?php else: ?><span class="account-avatar" aria-hidden="true"><?= strtoupper(substr($currentUser->displayName(), 0, 1)) ?></span><?php endif; ?>
             <span><small>Signed in as</small><strong><?= $escape($currentUser->displayName()) ?></strong></span>
         </div>
         <a class="account-button" href="/?route=account">My Account</a>
         <a class="account-button" href="/?route=appearance">Appearance</a>
+        <a class="account-button" href="/?route=profile-settings">Public profile</a>
         <form method="post" action="/?route=logout">
             <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
             <button class="logout-button" type="submit">Sign out</button>
