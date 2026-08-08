@@ -39,7 +39,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
     </div>
 
     <nav class="section-switcher" aria-label="Tracker sections">
-        <a href="/">Games</a><a class="is-active" href="/?route=merchandise" aria-current="page">Merchandise</a><a href="/?route=franchises">Franchises</a>
+        <a href="/">Home</a><a href="/?route=games">Games</a><a class="is-active" href="/?route=merchandise" aria-current="page">Merchandise</a><a href="/?route=franchises">Franchises</a>
     </nav>
 
     <nav class="collection-tabs merchandise-collections" aria-label="Merchandise collections">
@@ -74,7 +74,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
             <div class="panel-heading"><div><p class="eyebrow"><?= $form['id'] === '' ? 'New collectible' : 'Update collectible' ?></p><h2><?= $form['id'] === '' ? 'Add merchandise' : 'Edit merchandise' ?></h2></div><?php if ($form['id'] !== ''): ?><a class="text-link" href="/?route=merchandise">Cancel</a><?php endif; ?></div>
             <?php if ($errors !== []): ?><div class="alert alert-error"><?php foreach ($errors as $error): ?><p><?= $escape($error) ?></p><?php endforeach; ?></div><?php endif; ?>
             <?php if ($saved): ?><div class="alert alert-success">Merchandise saved.</div><?php endif; ?>
-            <form class="game-form" method="post" action="/?route=merchandise">
+            <form id="add-merchandise" class="game-form" method="post" action="/?route=merchandise">
                 <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>"><input type="hidden" name="id" value="<?= $escape($form['id']) ?>">
                 <label><span>Item name</span><input name="name" value="<?= $escape($form['name']) ?>" required maxlength="150" placeholder="e.g. Sonic 30th Anniversary Statue"></label>
                 <label><span>Franchise</span><input name="franchise" value="<?= $escape($form['franchise']) ?>" maxlength="100" placeholder="e.g. Sonic the Hedgehog"></label>

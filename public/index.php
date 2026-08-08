@@ -13,6 +13,7 @@ use GameTracker\Application\Http\CollectionDetailsController;
 use GameTracker\Application\Http\DataTransferController;
 use GameTracker\Application\Http\GameController;
 use GameTracker\Application\Http\GameJournalController;
+use GameTracker\Application\Http\HomeController;
 use GameTracker\Application\Http\FranchiseAtlasController;
 use GameTracker\Application\Http\MerchandiseController;
 use GameTracker\Application\Http\PublicProfileController;
@@ -22,6 +23,7 @@ use GameTracker\Application\Service\CollectionDetails;
 use GameTracker\Application\Service\DashboardCustomizer;
 use GameTracker\Application\Service\CollectionCsvTransfer;
 use GameTracker\Application\Service\GameLibrary;
+use GameTracker\Application\Service\CollectionDashboard;
 use GameTracker\Application\Service\FranchiseAtlas;
 use GameTracker\Application\Service\GameJournal;
 use GameTracker\Application\Service\GameCoverManager;
@@ -177,6 +179,12 @@ $merchandiseCollection = new MerchandiseCollection($merchandiseRepository, $curr
 $collectionDetails = new CollectionDetails($library, $merchandiseCollection, $metadataRepository, $currentUser->id());
 $franchiseAtlasController=new FranchiseAtlasController(new FranchiseAtlas($library,$merchandiseCollection,$metadataRepository,$franchiseGoalRepository,(int)$currentUser->id()),$csrf,$currentUser,$root.'/templates/franchises/index.php',$root.'/templates/franchises/details.php');
 
+if($route===''){
+    $atlas=new FranchiseAtlas($library,$merchandiseCollection,$metadataRepository,$franchiseGoalRepository,(int)$currentUser->id());
+    (new HomeController(new CollectionDashboard($library,$merchandiseCollection,$atlas),$csrf,$currentUser,$root.'/templates/home/index.php'))->index();
+    return;
+}
+
 if($route==='franchises'){$franchiseAtlasController->index($_GET);return;}
 if($route==='franchise'){$franchiseAtlasController->details($_SERVER,$_GET,$_POST);return;}
 
@@ -302,7 +310,7 @@ if ($route === 'game-cover') {
     return;
 }
 
-if (isset($_GET['trophies']) || isset($_POST['game_id'])) {
+if ($route === 'trophies') {
     $trophyController = new TrophyController(
         $library,
         new TrophyCabinet(new SqliteTrophyRepository($connection)),
@@ -323,4 +331,10 @@ $controller = new GameController(
     $collectionDetails,
 );
 
-$controller->handle($_SERVER, $_GET, $_POST, $_FILES);
+if ($route === 'games') {
+    $controller->handle($_SERVER, $_GET, $_POST, $_FILES);
+    return;
+}
+
+http_response_code(404);
+echo 'Page not found.';

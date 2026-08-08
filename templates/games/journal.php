@@ -30,7 +30,7 @@ $remainingMinutes = $totalMinutes % 60;
 <body class="theme-<?= $escape($currentUser->themePreset()) ?> density-<?= $escape($currentUser->layoutDensity()) ?>" style="<?= $escape($themeStyle) ?>">
     <header class="site-header journal-header">
         <div>
-            <a class="back-link" href="/">← Back to collection</a>
+            <a class="back-link" href="/?route=games">← Back to games</a>
             <p class="eyebrow">Private game journal</p>
             <h1><?= $escape($game->title()) ?></h1>
             <p class="lede"><?= $escape($game->platform()) ?> · <?= ucfirst($game->status()->value) ?> · <?= $game->progress() ?>% complete</p>
