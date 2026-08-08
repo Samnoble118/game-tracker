@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+/** Defines persistence for shared collection metadata. */
+
+namespace GameTracker\Domain\Repository;
+
+use GameTracker\Domain\Entity\CollectionMetadata;
+use GameTracker\Domain\Enum\CollectionItemType;
+
+/** Keeps collection-detail use cases independent from SQLite. */
+interface CollectionMetadataRepository
+{
+    /** Saves metadata only when its collection record belongs to the user. */
+    public function save(CollectionMetadata $metadata): void;
+
+    /** Finds user-scoped metadata for one collection record. */
+    public function find(CollectionItemType $type, int $itemId, int $userId): ?CollectionMetadata;
+}

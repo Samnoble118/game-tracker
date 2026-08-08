@@ -8,11 +8,13 @@ declare(strict_types=1);
 
 use GameTracker\Application\Http\AuthController;
 use GameTracker\Application\Http\AccountController;
+use GameTracker\Application\Http\CollectionDetailsController;
 use GameTracker\Application\Http\GameController;
 use GameTracker\Application\Http\GameJournalController;
 use GameTracker\Application\Http\MerchandiseController;
 use GameTracker\Application\Http\TrophyController;
 use GameTracker\Application\Service\Authenticator;
+use GameTracker\Application\Service\CollectionDetails;
 use GameTracker\Application\Service\DashboardCustomizer;
 use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Application\Service\GameJournal;
@@ -25,6 +27,7 @@ use GameTracker\Core\Http\SecurityHeaders;
 use GameTracker\Core\Security\RateLimiter;
 use GameTracker\Infrastructure\Persistence\SqliteGameRepository;
 use GameTracker\Infrastructure\Persistence\SqliteGameJournalRepository;
+use GameTracker\Infrastructure\Persistence\SqliteCollectionMetadataRepository;
 use GameTracker\Infrastructure\Persistence\SqliteMerchandiseRepository;
 use GameTracker\Infrastructure\Persistence\SqliteTrophyRepository;
 use GameTracker\Infrastructure\Persistence\SqliteUserRepository;
@@ -128,6 +131,18 @@ if ($currentUser === null) {
 }
 
 $library = new GameLibrary($gameRepository, $currentUser->id());
+$merchandiseCollection = new MerchandiseCollection(new SqliteMerchandiseRepository($connection), $currentUser->id());
+
+if ($route === 'collection-details') {
+    $detailsController = new CollectionDetailsController(
+        new CollectionDetails($library, $merchandiseCollection, new SqliteCollectionMetadataRepository($connection), $currentUser->id()),
+        $csrf,
+        $currentUser,
+        $root . '/templates/collection/details.php',
+    );
+    $detailsController->handle($_SERVER, $_GET, $_POST);
+    return;
+}
 
 if ($route === 'game') {
     $journalController = new GameJournalController(
@@ -143,7 +158,7 @@ if ($route === 'game') {
 
 if ($route === 'merchandise') {
     $merchandiseController = new MerchandiseController(
-        new MerchandiseCollection(new SqliteMerchandiseRepository($connection), $currentUser->id()),
+        $merchandiseCollection,
         $csrf,
         $root . '/templates/merchandise/index.php',
         $currentUser,

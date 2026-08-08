@@ -52,6 +52,12 @@ $remainingMinutes = $totalMinutes % 60;
         </form>
     </div>
 
+    <nav class="section-switcher journal-switcher" aria-label="Game record sections">
+        <a class="is-active" href="/?route=game&amp;id=<?= $game->id() ?>">Journal</a>
+        <a href="/?route=collection-details&amp;type=game&amp;id=<?= $game->id() ?>">Collection details</a>
+        <?php if ($game->supportsTrophies()): ?><a href="/?trophies=<?= $game->id() ?>">Trophies</a><?php endif; ?>
+    </nav>
+
     <?php if ($errors !== []): ?>
         <div class="journal-alert alert alert-error" role="alert">
             <?php foreach ($errors as $error): ?><p><?= $escape($error) ?></p><?php endforeach; ?>
