@@ -15,6 +15,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Merchandise — ArchiveXP</title>
     <link rel="stylesheet" href="/assets/app.css">
+    <script src="/assets/barcode.js" defer></script>
 </head>
 <body class="<?= $currentUser->merchandiseImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->merchandiseImageMode()) : '' ?>" style="<?= $currentUser->merchandiseImage() !== null ? '--dashboard-image: url(\'/?route=merchandise-image\'); --dashboard-overlay: ' . ($currentUser->merchandiseOverlay() / 100) : '' ?>">
     <header class="site-header merchandise-header">
@@ -74,6 +75,9 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                 <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>"><input type="hidden" name="id" value="<?= $escape($form['id']) ?>">
                 <label><span>Item name</span><input name="name" value="<?= $escape($form['name']) ?>" required maxlength="150" placeholder="e.g. Sonic 30th Anniversary Statue"></label>
                 <label><span>Franchise</span><input name="franchise" value="<?= $escape($form['franchise']) ?>" maxlength="100" placeholder="e.g. Sonic the Hedgehog"></label>
+                <div class="barcode-field"><label><span>Barcode (optional)</span><input id="barcode-input" name="barcode" inputmode="numeric" pattern="[0-9 ]{8,18}" value="<?= $escape($form['barcode']) ?>" placeholder="Enter or scan 8–14 digits"></label><button class="filter-button" id="scan-barcode" type="button">Scan</button></div>
+                <div class="barcode-scanner" id="barcode-scanner" hidden><video id="barcode-video" playsinline muted></video><div><p id="barcode-status">Point the camera at a barcode.</p><button class="reset-filter" id="stop-barcode" type="button">Stop camera</button></div></div>
+                <label class="checkbox-label"><input type="checkbox" name="allow_duplicate" value="1"><span>Allow this barcode if it is an intentional duplicate</span></label>
                 <div class="form-row"><label><span>Category</span><select name="category"><?php foreach ($categories as $category): ?><option value="<?= $category->value ?>" <?= $form['category'] === $category->value ? 'selected' : '' ?>><?= $escape($category->label()) ?></option><?php endforeach; ?></select></label><label><span>Packaging</span><select name="packaging"><?php foreach ($packagingOptions as $packaging): ?><option value="<?= $packaging->value ?>" <?= $form['packaging'] === $packaging->value ? 'selected' : '' ?>><?= $escape($packaging->label()) ?></option><?php endforeach; ?></select></label><label><span>Collection</span><select name="collection_type"><?php foreach ($collectionTypes as $type): ?><option value="<?= $type->value ?>" <?= $form['collection_type'] === $type->value ? 'selected' : '' ?>><?= ucfirst($type->value) ?></option><?php endforeach; ?></select></label></div>
                 <label><span>Quantity</span><input type="number" name="quantity" value="<?= $escape($form['quantity']) ?>" min="1" max="999" required></label>
                 <label><span>Notes</span><textarea name="notes" rows="4" maxlength="1000" placeholder="Edition, condition, shelf location…"><?= $escape($form['notes']) ?></textarea></label>

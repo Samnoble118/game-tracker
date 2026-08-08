@@ -9,12 +9,14 @@ declare(strict_types=1);
 namespace GameTracker\Application\Http;
 
 use GameTracker\Application\Service\MerchandiseCollection;
+use GameTracker\Application\Service\CollectionDetails;
 use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Domain\Entity\MerchandiseItem;
 use GameTracker\Domain\Entity\User;
 use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\MerchandiseCategory;
 use GameTracker\Domain\Enum\MerchandisePackaging;
+use GameTracker\Domain\Enum\CollectionItemType;
 use InvalidArgumentException;
 use ValueError;
 
@@ -22,7 +24,7 @@ use ValueError;
 final readonly class MerchandiseController
 {
     /** Creates the controller with collection, security, and template dependencies. */
-    public function __construct(private MerchandiseCollection $collection, private CsrfToken $csrf, private string $templatePath, private User $currentUser) {}
+    public function __construct(private MerchandiseCollection $collection, private CollectionDetails $details, private CsrfToken $csrf, private string $templatePath, private User $currentUser) {}
 
     /** Processes merchandise requests and renders the physical collection. @param array<string,mixed> $server @param array<string,mixed> $query @param array<string,mixed> $input */
     public function handle(array $server, array $query, array $input): void
@@ -84,14 +86,20 @@ final readonly class MerchandiseController
             'packaging' => trim((string) ($input['packaging'] ?? 'loose')),
             'collection_type' => trim((string) ($input['collection_type'] ?? 'owned')),
             'quantity' => trim((string) ($input['quantity'] ?? '1')), 'notes' => trim((string) ($input['notes'] ?? '')),
+            'barcode' => preg_replace('/\D+/', '', (string)($input['barcode'] ?? '')) ?? '',
         ];
         if (!$this->csrf->isValid(isset($input['_token']) ? (string) $input['_token'] : null)) return [['Your session expired. Refresh and try again.'], $form];
         try {
             $quantity = filter_var($form['quantity'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 999]]);
             if ($quantity === false) throw new InvalidArgumentException('Quantity must be between 1 and 999.');
+            $currentId = $form['id'] === '' ? 0 : (int)$form['id'];
+            if ($form['barcode'] !== '' && $this->details->duplicates($form['barcode'], CollectionItemType::Merchandise, $currentId) !== [] && !isset($input['allow_duplicate'])) {
+                throw new InvalidArgumentException('That barcode already exists in your collection. Tick the confirmation box to add an intentional duplicate.');
+            }
             $arguments = [$form['name'], $form['franchise'], MerchandiseCategory::from($form['category']), MerchandisePackaging::from($form['packaging']), CollectionType::from($form['collection_type']), $quantity, $form['notes']];
             $item = $form['id'] === '' ? $this->collection->add(...$arguments) : $this->collection->update((int) $form['id'], ...$arguments);
             if ($item === null) throw new InvalidArgumentException('That merchandise item could not be found.');
+            $this->details->saveBarcode(CollectionItemType::Merchandise, (int)$item->id(), $form['barcode']);
         } catch (InvalidArgumentException|ValueError $exception) {
             return [[$exception->getMessage()], $form];
         }
@@ -99,11 +107,11 @@ final readonly class MerchandiseController
     }
 
     /** Returns blank merchandise form values. @return array<string,string> */
-    private function emptyForm(): array { return ['id'=>'','name'=>'','franchise'=>'','category'=>'action-figure','packaging'=>'loose','collection_type'=>'owned','quantity'=>'1','notes'=>'']; }
+    private function emptyForm(): array { return ['id'=>'','name'=>'','franchise'=>'','category'=>'action-figure','packaging'=>'loose','collection_type'=>'owned','quantity'=>'1','notes'=>'','barcode'=>'']; }
 
     /** Converts an existing item into editable form values. @return array<string,string> */
     private function formFor(MerchandiseItem $item): array
     {
-        return ['id'=>(string)$item->id(),'name'=>$item->name(),'franchise'=>$item->franchise(),'category'=>$item->category()->value,'packaging'=>$item->packaging()->value,'collection_type'=>$item->collectionType()->value,'quantity'=>(string)$item->quantity(),'notes'=>$item->notes()];
+        return ['id'=>(string)$item->id(),'name'=>$item->name(),'franchise'=>$item->franchise(),'category'=>$item->category()->value,'packaging'=>$item->packaging()->value,'collection_type'=>$item->collectionType()->value,'quantity'=>(string)$item->quantity(),'notes'=>$item->notes(),'barcode'=>$this->details->details(CollectionItemType::Merchandise,(int)$item->id())->barcode()];
     }
 }

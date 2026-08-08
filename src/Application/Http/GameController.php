@@ -10,10 +10,12 @@ namespace GameTracker\Application\Http;
 
 use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Application\Service\GameCoverManager;
+use GameTracker\Application\Service\CollectionDetails;
 use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Domain\Entity\User;
 use GameTracker\Domain\Enum\CollectionType;
 use GameTracker\Domain\Enum\GameStatus;
+use GameTracker\Domain\Enum\CollectionItemType;
 use InvalidArgumentException;
 use ValueError;
 
@@ -44,6 +46,7 @@ final readonly class GameController
         private string $templatePath,
         private User $currentUser,
         private GameCoverManager $covers,
+        private CollectionDetails $details,
     ) {
     }
 
@@ -81,6 +84,7 @@ final readonly class GameController
                     'collection_type' => $editingGame->collectionType()->value,
                     'status' => $editingGame->status()->value,
                     'progress' => (string) $editingGame->progress(),
+                    'barcode' => $this->details->details(CollectionItemType::Game, (int)$editingGame->id())->barcode(),
                 ];
             }
         }
@@ -136,6 +140,7 @@ final readonly class GameController
             'collection_type' => trim((string) ($input['collection_type'] ?? CollectionType::Owned->value)),
             'status' => trim((string) ($input['status'] ?? GameStatus::Backlog->value)),
             'progress' => trim((string) ($input['progress'] ?? '0')),
+            'barcode' => preg_replace('/\D+/', '', (string)($input['barcode'] ?? '')) ?? '',
         ];
 
         if (!$this->csrf->isValid(isset($input['_token']) ? (string) $input['_token'] : null)) {
@@ -154,9 +159,13 @@ final readonly class GameController
             if ($progress === false) {
                 throw new InvalidArgumentException('Progress must be a whole number from 0 to 100.');
             }
+            $currentId = $form['id'] === '' ? 0 : (int)$form['id'];
+            if ($form['barcode'] !== '' && $this->details->duplicates($form['barcode'], CollectionItemType::Game, $currentId) !== [] && !isset($input['allow_duplicate'])) {
+                throw new InvalidArgumentException('That barcode already exists in your collection. Tick the confirmation box to add an intentional duplicate.');
+            }
 
             if ($form['id'] === '') {
-                $this->library->add(
+                $game = $this->library->add(
                     $form['title'],
                     $form['platform'],
                     $status,
@@ -183,6 +192,7 @@ final readonly class GameController
                     $this->covers->upload($game, $files['cover_image']);
                 }
             }
+            $this->details->saveBarcode(CollectionItemType::Game, (int)$game->id(), $form['barcode']);
         } catch (InvalidArgumentException|ValueError $exception) {
             return [[$exception->getMessage()], $form];
         }
@@ -204,6 +214,7 @@ final readonly class GameController
             'collection_type' => CollectionType::Owned->value,
             'status' => GameStatus::Backlog->value,
             'progress' => '0',
+            'barcode' => '',
         ];
     }
 

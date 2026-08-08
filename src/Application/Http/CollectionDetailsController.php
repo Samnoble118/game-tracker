@@ -33,16 +33,34 @@ final readonly class CollectionDetailsController
         $subject = $this->details->subject($type, $itemId);
         if ($subject === null) { http_response_code(404); echo 'Collection item not found.'; return; }
         $errors = [];
+        $duplicateMatches = [];
         if (($server['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             if (!$this->csrf->isValid(isset($input['_token']) ? (string)$input['_token'] : null)) {
                 $errors[] = 'Your session expired. Refresh the page and try again.';
             } else {
-                try { $this->details->save($type, $itemId, $input); }
+                try {
+                    $duplicateMatches = $this->details->duplicates((string)($input['barcode'] ?? ''), $type, $itemId);
+                    if ($duplicateMatches !== [] && !isset($input['allow_duplicate'])) {
+                        throw new InvalidArgumentException('This barcode already exists in your collection. Review the matches and confirm if this is intentional.');
+                    }
+                    $this->details->save($type, $itemId, $input);
+                }
                 catch (InvalidArgumentException|ValueError $exception) { $errors[] = $exception->getMessage(); }
                 if ($errors === []) { header('Location: /?route=collection-details&type='.$type->value.'&id='.$itemId.'&saved=1', true, 303); return; }
             }
         }
         $metadata = $this->details->details($type, $itemId);
+        $form = [
+            'franchise'=>$metadata->franchise(),'characters'=>$metadata->characters(),'barcode'=>$metadata->barcode(),
+            'location'=>$metadata->location(),'condition'=>$metadata->condition()->value,'packaging'=>$metadata->packaging()->value,
+            'purchase_price'=>$metadata->purchasePricePence() === null ? '' : number_format($metadata->purchasePricePence()/100,2,'.',''),
+            'currency'=>$metadata->currency(),'purchased_on'=>$metadata->purchasedOn()?->format('Y-m-d') ?? '',
+            'retailer'=>$metadata->retailer(),'serial_number'=>$metadata->serialNumber(),
+            'receipt_reference'=>$metadata->receiptReference(),'private_notes'=>$metadata->privateNotes(),
+        ];
+        if ($errors !== []) {
+            foreach (array_keys($form) as $field) if (array_key_exists($field, $input)) $form[$field] = trim((string)$input[$field]);
+        }
         $related = $this->details->related($metadata->franchise(), $type, $itemId);
         $relatedItems = [];
         foreach ($related['games'] as $game) {

@@ -67,13 +67,39 @@ final readonly class CollectionDetails
 
         $metadata = new CollectionMetadata(
             $type,$itemId,$this->userId,
-            trim((string)($input['franchise'] ?? '')),trim((string)($input['characters'] ?? '')),trim((string)($input['location'] ?? '')),
+            trim((string)($input['franchise'] ?? '')),trim((string)($input['characters'] ?? '')),preg_replace('/\D+/', '', (string)($input['barcode'] ?? '')) ?? '',trim((string)($input['location'] ?? '')),
             ItemCondition::from((string)($input['condition'] ?? 'unspecified')),ItemPackaging::from((string)($input['packaging'] ?? 'unspecified')),$pricePence,
             strtoupper(trim((string)($input['currency'] ?? 'GBP'))),$purchasedOn,
             trim((string)($input['retailer'] ?? '')),trim((string)($input['serial_number'] ?? '')),
             trim((string)($input['receipt_reference'] ?? '')),trim((string)($input['private_notes'] ?? '')),
         );
         $this->metadata->save($metadata);
+    }
+
+    /** Returns other collection subjects sharing a barcode. @return list<array{type:CollectionItemType,id:int,name:string,subtitle:string}> */
+    public function duplicates(string $barcode, CollectionItemType $currentType, int $currentId): array
+    {
+        $barcode = preg_replace('/\D+/', '', $barcode) ?? '';
+        if ($barcode === '') return [];
+        $duplicates = [];
+        foreach ($this->metadata->findByBarcode($barcode, $this->userId) as $match) {
+            if ($match->itemType() === $currentType && $match->itemId() === $currentId) continue;
+            $subject = $this->subject($match->itemType(), $match->itemId());
+            if ($subject !== null) $duplicates[] = $subject;
+        }
+        return $duplicates;
+    }
+
+    /** Replaces only the barcode while preserving every other collection detail. */
+    public function saveBarcode(CollectionItemType $type, int $itemId, string $barcode): void
+    {
+        $existing = $this->details($type, $itemId);
+        $barcode = preg_replace('/\D+/', '', $barcode) ?? '';
+        $this->metadata->save(new CollectionMetadata(
+            $type,$itemId,$this->userId,$existing->franchise(),$existing->characters(),$barcode,$existing->location(),
+            $existing->condition(),$existing->packaging(),$existing->purchasePricePence(),$existing->currency(),$existing->purchasedOn(),
+            $existing->retailer(),$existing->serialNumber(),$existing->receiptReference(),$existing->privateNotes(),
+        ));
     }
 
     /** Returns games and merchandise connected by an exact franchise name. @return array{games:list<\GameTracker\Domain\Entity\Game>,merchandise:list<\GameTracker\Domain\Entity\MerchandiseItem>} */

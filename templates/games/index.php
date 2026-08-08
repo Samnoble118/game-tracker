@@ -25,6 +25,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     <title>ArchiveXP — Games</title>
     <link rel="stylesheet" href="/assets/app.css">
     <script src="/assets/app.js" defer></script>
+    <script src="/assets/barcode.js" defer></script>
 </head>
 <body class="<?= $currentUser->dashboardImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->dashboardImageMode()) : '' ?>" style="<?= $currentUser->dashboardImage() !== null ? '--dashboard-image: url(\'/?route=dashboard-image\'); --dashboard-overlay: ' . ($currentUser->dashboardOverlay() / 100) : '' ?>">
     <header class="site-header dashboard-header">
@@ -124,6 +125,10 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
                     <span>Platform</span>
                     <input name="platform" value="<?= $escape($form['platform']) ?>" required maxlength="100" placeholder="e.g. PC, Switch, PS5">
                 </label>
+
+                <div class="barcode-field"><label><span>Barcode (optional)</span><input id="barcode-input" name="barcode" inputmode="numeric" pattern="[0-9 ]{8,18}" value="<?= $escape($form['barcode']) ?>" placeholder="Enter or scan 8–14 digits"></label><button class="filter-button" id="scan-barcode" type="button">Scan</button></div>
+                <div class="barcode-scanner" id="barcode-scanner" hidden><video id="barcode-video" playsinline muted></video><div><p id="barcode-status">Point the camera at a barcode.</p><button class="reset-filter" id="stop-barcode" type="button">Stop camera</button></div></div>
+                <label class="checkbox-label"><input type="checkbox" name="allow_duplicate" value="1"><span>Allow this barcode if it is an intentional duplicate</span></label>
 
                 <div class="form-row form-row-three">
                     <label>
