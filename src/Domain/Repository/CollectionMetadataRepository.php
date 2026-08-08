@@ -20,4 +20,7 @@ interface CollectionMetadataRepository
 
     /** Returns metadata records sharing a barcode for one user. @return list<CollectionMetadata> */
     public function findByBarcode(string $barcode, int $userId): array;
+
+    /** Returns every metadata record belonging to one user. @return list<CollectionMetadata> */
+    public function all(int $userId): array;
 }

@@ -13,6 +13,7 @@ use GameTracker\Application\Http\CollectionDetailsController;
 use GameTracker\Application\Http\DataTransferController;
 use GameTracker\Application\Http\GameController;
 use GameTracker\Application\Http\GameJournalController;
+use GameTracker\Application\Http\FranchiseAtlasController;
 use GameTracker\Application\Http\MerchandiseController;
 use GameTracker\Application\Http\PublicProfileController;
 use GameTracker\Application\Http\TrophyController;
@@ -21,6 +22,7 @@ use GameTracker\Application\Service\CollectionDetails;
 use GameTracker\Application\Service\DashboardCustomizer;
 use GameTracker\Application\Service\CollectionCsvTransfer;
 use GameTracker\Application\Service\GameLibrary;
+use GameTracker\Application\Service\FranchiseAtlas;
 use GameTracker\Application\Service\GameJournal;
 use GameTracker\Application\Service\GameCoverManager;
 use GameTracker\Application\Service\MerchandiseCollection;
@@ -31,6 +33,7 @@ use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Core\Http\SecurityHeaders;
 use GameTracker\Core\Security\RateLimiter;
 use GameTracker\Infrastructure\Persistence\SqliteGameRepository;
+use GameTracker\Infrastructure\Persistence\SqliteFranchiseGoalRepository;
 use GameTracker\Infrastructure\Persistence\SqliteImportHistoryRepository;
 use GameTracker\Infrastructure\Persistence\SqliteGameJournalRepository;
 use GameTracker\Infrastructure\Persistence\SqliteCollectionMetadataRepository;
@@ -99,6 +102,8 @@ session_start();
 $userRepository = new SqliteUserRepository($connection);
 $gameRepository = new SqliteGameRepository($connection);
 $merchandiseRepository = new SqliteMerchandiseRepository($connection);
+$metadataRepository = new SqliteCollectionMetadataRepository($connection);
+$franchiseGoalRepository = new SqliteFranchiseGoalRepository($connection);
 $auth = new Authenticator(
     $userRepository,
     $config['session_idle_timeout'],
@@ -154,6 +159,14 @@ if ($route === 'profile-image') {
     return;
 }
 
+if ($route === 'public-franchise') {
+    $owner=$userRepository->findByUsername((string)($_GET['user']??''));
+    if($owner===null){http_response_code(404);header('Content-Type: text/plain; charset=utf-8');echo 'Franchise unavailable.';return;}
+    $ownerGames=new GameLibrary($gameRepository,(int)$owner->id());$ownerMerchandise=new MerchandiseCollection($merchandiseRepository,(int)$owner->id());
+    (new FranchiseAtlasController(new FranchiseAtlas($ownerGames,$ownerMerchandise,$metadataRepository,$franchiseGoalRepository,(int)$owner->id()),$csrf,$owner,$root.'/templates/franchises/index.php',$root.'/templates/franchises/details.php'))->publicDetails($_GET);
+    return;
+}
+
 if ($currentUser === null) {
     header('Location: /?route=login', true, 303);
     return;
@@ -161,7 +174,11 @@ if ($currentUser === null) {
 
 $library = new GameLibrary($gameRepository, $currentUser->id());
 $merchandiseCollection = new MerchandiseCollection($merchandiseRepository, $currentUser->id());
-$collectionDetails = new CollectionDetails($library, $merchandiseCollection, new SqliteCollectionMetadataRepository($connection), $currentUser->id());
+$collectionDetails = new CollectionDetails($library, $merchandiseCollection, $metadataRepository, $currentUser->id());
+$franchiseAtlasController=new FranchiseAtlasController(new FranchiseAtlas($library,$merchandiseCollection,$metadataRepository,$franchiseGoalRepository,(int)$currentUser->id()),$csrf,$currentUser,$root.'/templates/franchises/index.php',$root.'/templates/franchises/details.php');
+
+if($route==='franchises'){$franchiseAtlasController->index($_GET);return;}
+if($route==='franchise'){$franchiseAtlasController->details($_SERVER,$_GET,$_POST);return;}
 
 if ($route === 'collection-details') {
     $detailsController = new CollectionDetailsController(
@@ -244,6 +261,20 @@ if ($route === 'dashboard-image') {
 
 if ($route === 'merchandise-image') {
     $imagePath = $customizer->merchandisePathFor($currentUser);
+    if ($imagePath === null) {
+        http_response_code(404);
+        return;
+    }
+
+    header('Content-Type: ' . (new finfo(FILEINFO_MIME_TYPE))->file($imagePath));
+    header('Cache-Control: private, no-store');
+    header('X-Content-Type-Options: nosniff');
+    readfile($imagePath);
+    return;
+}
+
+if ($route === 'franchise-image') {
+    $imagePath = $customizer->franchisePathFor($currentUser);
     if ($imagePath === null) {
         http_response_code(404);
         return;

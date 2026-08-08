@@ -49,6 +49,20 @@ final class UserDashboardAppearanceTest extends TestCase
         self::assertSame(60, $user->merchandiseOverlay());
     }
 
+    /** Confirms Franchise Atlas artwork remains independent from other dashboards. */
+    public function test_it_updates_franchise_appearance_independently(): void
+    {
+        $user = new User('player@example.com', 'hash', dashboardImage: 'games.webp', merchandiseImage: 'merchandise.webp');
+
+        $user->updateFranchiseAppearance('atlas.webp', 'wallpaper', 62);
+
+        self::assertSame('games.webp', $user->dashboardImage());
+        self::assertSame('merchandise.webp', $user->merchandiseImage());
+        self::assertSame('atlas.webp', $user->franchiseImage());
+        self::assertSame('wallpaper', $user->franchiseImageMode());
+        self::assertSame(62, $user->franchiseOverlay());
+    }
+
     /** Confirms a readable custom palette and compact cards can be stored. */
     public function test_it_updates_theme_colours_and_density(): void
     {

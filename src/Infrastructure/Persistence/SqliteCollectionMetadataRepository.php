@@ -71,6 +71,14 @@ final readonly class SqliteCollectionMetadataRepository implements CollectionMet
         return array_map($this->hydrate(...), $statement->fetchAll());
     }
 
+    /** Returns all metadata for building user-scoped collection indexes. */
+    public function all(int $userId): array
+    {
+        $statement=$this->connection->prepare('SELECT * FROM collection_metadata WHERE user_id=:user_id ORDER BY franchise,item_type,item_id');
+        $statement->execute(['user_id'=>$userId]);
+        return array_map($this->hydrate(...),$statement->fetchAll());
+    }
+
     /** Converts metadata into named SQL parameters. @return array<string,int|string|null> */
     private function parameters(CollectionMetadata $metadata): array
     {

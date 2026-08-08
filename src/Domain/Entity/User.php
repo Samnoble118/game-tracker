@@ -25,6 +25,9 @@ final class User
         private ?string $merchandiseImage = null,
         private string $merchandiseImageMode = 'banner',
         private int $merchandiseOverlay = 55,
+        private ?string $franchiseImage = null,
+        private string $franchiseImageMode = 'banner',
+        private int $franchiseOverlay = 55,
         private string $themePreset = 'archive-purple',
         private string $themeAccent = '#7c5cff',
         private string $themeBackground = '#0b0d12',
@@ -48,6 +51,7 @@ final class User
             $this->merchandiseImageMode,
             $this->merchandiseOverlay,
         );
+        $this->updateFranchiseAppearance($this->franchiseImage, $this->franchiseImageMode, $this->franchiseOverlay);
         $this->updateTheme($this->themePreset, $this->themeAccent, $this->themeBackground, $this->themePanel, $this->themeText, $this->layoutDensity);
         $this->updatePublicProfile($this->profileDisplayName, $this->profileBio, $this->profilePublic, $this->profileImage);
     }
@@ -134,6 +138,15 @@ final class User
     /** Returns the merchandise artwork overlay percentage. */
     public function merchandiseOverlay(): int { return $this->merchandiseOverlay; }
 
+    /** Returns the private Franchise Atlas artwork filename. */
+    public function franchiseImage(): ?string { return $this->franchiseImage; }
+
+    /** Returns whether Franchise Atlas artwork is a banner or wallpaper. */
+    public function franchiseImageMode(): string { return $this->franchiseImageMode; }
+
+    /** Returns the Franchise Atlas artwork overlay percentage. */
+    public function franchiseOverlay(): int { return $this->franchiseOverlay; }
+
     /** Returns the selected named theme or custom mode. */ public function themePreset(): string { return $this->themePreset; }
     /** Returns the theme accent colour. */ public function themeAccent(): string { return $this->themeAccent; }
     /** Returns the page background colour. */ public function themeBackground(): string { return $this->themeBackground; }
@@ -183,6 +196,15 @@ final class User
         $this->merchandiseImage = $image;
         $this->merchandiseImageMode = $mode;
         $this->merchandiseOverlay = $overlay;
+    }
+
+    /** Validates and updates Franchise Atlas artwork settings. */
+    public function updateFranchiseAppearance(?string $image, string $mode, int $overlay): void
+    {
+        $this->validateAppearance($mode, $overlay);
+        $this->franchiseImage = $image;
+        $this->franchiseImageMode = $mode;
+        $this->franchiseOverlay = $overlay;
     }
 
     /** Validates shared artwork display settings. */
