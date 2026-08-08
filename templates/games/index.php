@@ -56,14 +56,15 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
     </div>
 
     <nav class="section-switcher" aria-label="Tracker sections">
-        <a class="is-active" href="/" aria-current="page">Games</a>
+        <a href="/">Home</a>
+        <a class="is-active" href="/?route=games" aria-current="page">Games</a>
         <a href="/?route=merchandise">Merchandise</a>
         <a href="/?route=franchises">Franchises</a>
     </nav>
 
     <nav class="collection-tabs" aria-label="Game collections">
         <?php foreach ($viewTitles as $view => $title): ?>
-            <?php $viewUrl = '/?' . http_build_query([...$filterQuery, 'view' => $view]); ?>
+            <?php $viewUrl = '/?' . http_build_query([...$filterQuery, 'route' => 'games', 'view' => $view]); ?>
             <a href="<?= $escape($viewUrl) ?>" class="collection-tab <?= $activeView === $view ? 'is-active' : '' ?>" <?= $activeView === $view ? 'aria-current="page"' : '' ?>>
                 <span><?= $escape($title) ?></span>
                 <strong><?= $counts[$view] ?></strong>
@@ -73,6 +74,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
 
     <section class="library-tools" aria-label="Filter game collection">
         <form class="search-form" method="get" action="/" data-live-search>
+            <input type="hidden" name="route" value="games">
             <input type="hidden" name="view" value="<?= $escape($activeView) ?>">
             <input type="hidden" name="platform" value="<?= $escape($activePlatform) ?>">
             <label class="search-field"><span class="visually-hidden">Search games</span><input type="search" name="q" value="<?= $escape($search) ?>" placeholder="Search by game or platform…"></label>
@@ -99,7 +101,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
                     <h2 id="game-form-title"><?= $form['id'] === '' ? 'Add a game' : 'Edit game' ?></h2>
                 </div>
                 <?php if ($form['id'] !== ''): ?>
-                    <a class="text-link" href="/?view=<?= $activeView ?>">Cancel</a>
+                    <a class="text-link" href="/?route=games&amp;view=<?= $activeView ?>">Cancel</a>
                 <?php endif; ?>
             </div>
 
@@ -115,7 +117,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
                 <div class="alert alert-success" role="status">Game saved successfully.</div>
             <?php endif; ?>
 
-            <form method="post" action="/" class="game-form" enctype="multipart/form-data">
+            <form id="add-game" method="post" action="/?route=games" class="game-form" enctype="multipart/form-data">
                 <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
                 <input type="hidden" name="id" value="<?= $escape($form['id']) ?>">
                 <input type="hidden" name="view" value="<?= $escape($activeView) ?>">
@@ -221,7 +223,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
                                             <?= ucfirst($game->status()->value) ?>
                                         </span>
                                     </div>
-                                    <a class="text-link" href="/?view=<?= $activeView ?>&amp;edit=<?= $game->id() ?>">Edit</a>
+                                    <a class="text-link" href="/?route=games&amp;view=<?= $activeView ?>&amp;edit=<?= $game->id() ?>">Edit</a>
                                 </div>
                                 <h3><?= $escape($game->title()) ?></h3>
                                 <p class="platform"><?= $escape($game->platform()) ?></p>
@@ -229,7 +231,7 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
                                 <div class="progress-track" aria-label="<?= $game->progress() ?>% complete"><span style="width: <?= $game->progress() ?>%"></span></div>
                                 <div class="card-actions">
                                     <a class="journal-link" href="/?route=game&amp;id=<?= $game->id() ?>">Open game journal <span aria-hidden="true">→</span></a>
-                                    <?php if ($game->supportsTrophies()): ?><a class="trophy-link" href="/?trophies=<?= $game->id() ?>">Manage trophies <span aria-hidden="true">→</span></a><?php endif; ?>
+                                    <?php if ($game->supportsTrophies()): ?><a class="trophy-link" href="/?route=trophies&amp;trophies=<?= $game->id() ?>">Manage trophies <span aria-hidden="true">→</span></a><?php endif; ?>
                                 </div>
                             </div>
                         </article>

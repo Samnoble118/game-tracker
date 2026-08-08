@@ -33,6 +33,13 @@ tags into browsable franchise hubs. Collectors can add measurable collection
 quests, see wishlist gaps, track game completion, and share a privacy-safe
 franchise page when their Display Cabinet is public.
 
+## Collection HQ
+
+Signed-in collectors land on a personalised home dashboard summarising games,
+merchandise, franchises, wishlists, active playthroughs, recent additions, and
+collection insights. Quick actions lead directly to adding records or importing
+an existing collection.
+
 ## Collection data transfers
 
 Signed-in users can open **My Account → Data tools** to import or export games

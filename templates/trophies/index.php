@@ -28,7 +28,7 @@ $themeStyle="--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeBac
 <body class="theme-<?= $escape($currentUser->themePreset()) ?> density-<?= $escape($currentUser->layoutDensity()) ?>" style="<?= $escape($themeStyle) ?>">
     <header class="site-header trophy-header">
         <div>
-            <a class="back-link" href="/">← Back to collection</a>
+            <a class="back-link" href="/?route=games">← Back to games</a>
             <p class="eyebrow">Manual trophy cabinet</p>
             <h1><?= $escape($game->title()) ?></h1>
             <p class="lede"><?= $escape($game->platform()) ?> · <?= $earnedCount ?> of <?= count($trophies) ?> trophies earned</p>
@@ -68,7 +68,7 @@ $themeStyle="--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeBac
             <?php endif; ?>
             <?php if ($saved): ?><div class="alert alert-success" role="status">Trophies updated.</div><?php endif; ?>
 
-            <form method="post" action="/?trophies=<?= $game->id() ?>" class="game-form">
+            <form method="post" action="/?route=trophies&amp;trophies=<?= $game->id() ?>" class="game-form">
                 <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
                 <input type="hidden" name="game_id" value="<?= $game->id() ?>">
                 <input type="hidden" name="action" value="add">

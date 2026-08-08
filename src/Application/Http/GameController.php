@@ -70,7 +70,7 @@ final readonly class GameController
             $activeView = $this->activeView(['view' => $input['view'] ?? 'all']);
 
             if ($errors === []) {
-                header('Location: /?view=' . $activeView . '&saved=1', true, 303);
+                header('Location: /?route=games&view=' . $activeView . '&saved=1', true, 303);
                 return;
             }
         } elseif (isset($query['edit'])) {
@@ -115,7 +115,7 @@ final readonly class GameController
         $statuses = GameStatus::cases();
         $platformGroups = self::PLATFORM_GROUPS;
         $platformCounts = $this->library->platformCounts($activeView);
-        $filterQuery = ['view' => $activeView, 'q' => $search, 'platform' => $activePlatform, 'status' => $statusFilter];
+        $filterQuery = ['route'=>'games','view' => $activeView, 'q' => $search, 'platform' => $activePlatform, 'status' => $statusFilter];
         $collectionTypes = CollectionType::cases();
         $csrfToken = $this->csrf->value();
         $saved = isset($query['saved']);

@@ -58,7 +58,7 @@ final readonly class TrophyController
             [$errors, $form] = $this->save($gameId, $input);
 
             if ($errors === []) {
-                header('Location: /?trophies=' . $gameId . '&saved=1', true, 303);
+                header('Location: /?route=trophies&trophies=' . $gameId . '&saved=1', true, 303);
                 return;
             }
         }
