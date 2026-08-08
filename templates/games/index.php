@@ -16,6 +16,7 @@ use GameTracker\Domain\Enum\GameStatus;
 /** @var list<GameStatus> $statuses Status options for the form. */
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+$themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeBackground()};--panel:{$currentUser->themePanel()};--text:{$currentUser->themeText()};";
 ?>
 <!doctype html>
 <html lang="en">
@@ -27,7 +28,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
     <script src="/assets/app.js" defer></script>
     <script src="/assets/barcode.js" defer></script>
 </head>
-<body class="<?= $currentUser->dashboardImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->dashboardImageMode()) : '' ?>" style="<?= $currentUser->dashboardImage() !== null ? '--dashboard-image: url(\'/?route=dashboard-image\'); --dashboard-overlay: ' . ($currentUser->dashboardOverlay() / 100) : '' ?>">
+<body class="theme-<?= $escape($currentUser->themePreset()) ?> density-<?= $escape($currentUser->layoutDensity()) ?> <?= $currentUser->dashboardImage() !== null ? 'has-dashboard-image image-mode-' . $escape($currentUser->dashboardImageMode()) : '' ?>" style="<?= $escape($themeStyle) ?><?= $currentUser->dashboardImage() !== null ? '--dashboard-image:url(\'/?route=dashboard-image\');--dashboard-overlay:' . ($currentUser->dashboardOverlay()/100) : '' ?>">
     <header class="site-header dashboard-header">
         <div>
             <p class="eyebrow">Your personal library</p>
@@ -46,6 +47,7 @@ $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOT
             <span><small>Signed in as</small><strong><?= $escape($currentUser->displayName()) ?></strong></span>
         </div>
         <a class="account-button" href="/?route=account">My Account</a>
+        <a class="account-button" href="/?route=appearance">Appearance</a>
         <form method="post" action="/?route=logout">
             <input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>">
             <button class="logout-button" type="submit">Sign out</button>

@@ -5,14 +5,15 @@ declare(strict_types=1);
 /** Renders shared catalogue fields and owner-only collection records. */
 
 $escape = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+$themeStyle="--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeBackground()};--panel:{$currentUser->themePanel()};--text:{$currentUser->themeText()}";
 $backLink = $subject['type']->value === 'game' ? '/?route=game&id='.$subject['id'] : '/?route=merchandise';
 ?>
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= $escape($subject['name']) ?> Details — ArchiveXP</title><link rel="stylesheet" href="/assets/app.css"><script src="/assets/barcode.js" defer></script></head>
-<body>
+<body class="theme-<?= $escape($currentUser->themePreset()) ?> density-<?= $escape($currentUser->layoutDensity()) ?>" style="<?= $escape($themeStyle) ?>">
 <header class="site-header details-header"><div><a class="back-link" href="<?= $escape($backLink) ?>">← Back</a><p class="eyebrow">Collection record</p><h1><?= $escape($subject['name']) ?></h1><p class="lede"><?= $escape($subject['subtitle']) ?> · <?= $escape($subject['type']->label()) ?></p></div><div class="summary"><strong><?= $metadata->condition()->label() ?></strong><span>condition</span></div></header>
-<div class="account-bar"><div class="account-identity"><span class="account-avatar"><?= strtoupper(substr($currentUser->displayName(),0,1)) ?></span><span><small>Signed in as</small><strong><?= $escape($currentUser->displayName()) ?></strong></span></div><a class="account-button" href="/?route=account">My Account</a><form method="post" action="/?route=logout"><input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>"><button class="logout-button" type="submit">Sign out</button></form></div>
+<div class="account-bar"><div class="account-identity"><span class="account-avatar"><?= strtoupper(substr($currentUser->displayName(),0,1)) ?></span><span><small>Signed in as</small><strong><?= $escape($currentUser->displayName()) ?></strong></span></div><a class="account-button" href="/?route=account">My Account</a><a class="account-button" href="/?route=appearance">Appearance</a><form method="post" action="/?route=logout"><input type="hidden" name="_token" value="<?= $escape($csrfToken) ?>"><button class="logout-button" type="submit">Sign out</button></form></div>
 <?php if ($errors !== []): ?><div class="journal-alert alert alert-error"><?php foreach ($errors as $error): ?><p><?= $escape($error) ?></p><?php endforeach; ?></div><?php endif; ?>
 <?php if ($saved): ?><div class="journal-alert alert alert-success">Collection details saved.</div><?php endif; ?>
 <main class="details-layout">

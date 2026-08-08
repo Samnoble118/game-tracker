@@ -25,6 +25,12 @@ final class User
         private ?string $merchandiseImage = null,
         private string $merchandiseImageMode = 'banner',
         private int $merchandiseOverlay = 55,
+        private string $themePreset = 'archive-purple',
+        private string $themeAccent = '#7c5cff',
+        private string $themeBackground = '#0b0d12',
+        private string $themePanel = '#141821',
+        private string $themeText = '#f5f7fb',
+        private string $layoutDensity = 'spacious',
     ) {
         $this->updateEmail($this->email);
         $this->updateUsername($this->username);
@@ -38,6 +44,7 @@ final class User
             $this->merchandiseImageMode,
             $this->merchandiseOverlay,
         );
+        $this->updateTheme($this->themePreset, $this->themeAccent, $this->themeBackground, $this->themePanel, $this->themeText, $this->layoutDensity);
     }
 
     /** Returns the persisted identifier or null for a new account. */
@@ -96,6 +103,37 @@ final class User
 
     /** Returns the merchandise artwork overlay percentage. */
     public function merchandiseOverlay(): int { return $this->merchandiseOverlay; }
+
+    /** Returns the selected named theme or custom mode. */ public function themePreset(): string { return $this->themePreset; }
+    /** Returns the theme accent colour. */ public function themeAccent(): string { return $this->themeAccent; }
+    /** Returns the page background colour. */ public function themeBackground(): string { return $this->themeBackground; }
+    /** Returns the panel background colour. */ public function themePanel(): string { return $this->themePanel; }
+    /** Returns the primary text colour. */ public function themeText(): string { return $this->themeText; }
+    /** Returns compact or spacious layout density. */ public function layoutDensity(): string { return $this->layoutDensity; }
+
+    /** Validates and replaces persisted theme colours and layout density. */
+    public function updateTheme(string $preset, string $accent, string $background, string $panel, string $text, string $density): void
+    {
+        if (!in_array($preset, ['archive-purple','playstation-blue','xbox-green','nintendo-red','sonic-blue','retro-neon','custom'], true)) throw new InvalidArgumentException('Choose a valid theme preset.');
+        if (!in_array($density, ['spacious','compact'], true)) throw new InvalidArgumentException('Choose a valid layout density.');
+        foreach ([$accent,$background,$panel,$text] as $colour) if (preg_match('/^#[0-9a-fA-F]{6}$/', $colour) !== 1) throw new InvalidArgumentException('Theme colours must use six-digit hex values.');
+        if ($this->contrastRatio($text, $background) < 4.5 || $this->contrastRatio($text, $panel) < 4.5) throw new InvalidArgumentException('Text must have at least 4.5:1 contrast against the background and panels.');
+        $this->themePreset=$preset; $this->themeAccent=strtolower($accent); $this->themeBackground=strtolower($background);
+        $this->themePanel=strtolower($panel); $this->themeText=strtolower($text); $this->layoutDensity=$density;
+    }
+
+    /** Calculates WCAG contrast between two six-digit hex colours. */
+    private function contrastRatio(string $first, string $second): float
+    {
+        $luminance = static function (string $hex): float {
+            $parts = [hexdec(substr($hex,1,2))/255,hexdec(substr($hex,3,2))/255,hexdec(substr($hex,5,2))/255];
+            $parts = array_map(static fn(float $value): float => $value <= .04045 ? $value/12.92 : (($value+.055)/1.055)**2.4, $parts);
+            return .2126*$parts[0]+.7152*$parts[1]+.0722*$parts[2];
+        };
+        [$light,$dark] = [$luminance($first),$luminance($second)];
+        if ($dark > $light) [$light,$dark] = [$dark,$light];
+        return ($light+.05)/($dark+.05);
+    }
 
     /** Validates and updates dashboard artwork settings. */
     public function updateDashboardAppearance(?string $image, string $mode, int $overlay): void

@@ -15,6 +15,14 @@ use InvalidArgumentException;
 /** Manages per-user dashboard artwork and display preferences. */
 final readonly class DashboardCustomizer
 {
+    public const PRESETS = [
+        'archive-purple'=>['label'=>'Archive Purple','accent'=>'#7c5cff','background'=>'#0b0d12','panel'=>'#141821','text'=>'#f5f7fb'],
+        'playstation-blue'=>['label'=>'PlayStation Blue','accent'=>'#3975f6','background'=>'#080d18','panel'=>'#111b2d','text'=>'#f4f7ff'],
+        'xbox-green'=>['label'=>'Xbox Green','accent'=>'#56b847','background'=>'#08110b','panel'=>'#121d15','text'=>'#f4fff5'],
+        'nintendo-red'=>['label'=>'Nintendo Red','accent'=>'#e60012','background'=>'#14090b','panel'=>'#241317','text'=>'#fff5f6'],
+        'sonic-blue'=>['label'=>'Sonic Blue','accent'=>'#2788f5','background'=>'#07111f','panel'=>'#102239','text'=>'#f2f8ff'],
+        'retro-neon'=>['label'=>'Retro Neon','accent'=>'#ff3fd1','background'=>'#090711','panel'=>'#171126','text'=>'#f9f2ff'],
+    ];
     private const MAX_FILE_SIZE = 5_242_880;
     private const MAX_IMAGE_DIMENSION = 8000;
     private const MAX_IMAGE_PIXELS = 40_000_000;
@@ -63,6 +71,25 @@ final readonly class DashboardCustomizer
     {
         $this->deleteMerchandiseExisting($user);
         $user->updateMerchandiseAppearance(null, 'banner', 55);
+        $this->users->save($user);
+    }
+
+    /** Applies a preset or validated custom colour palette. */
+    public function updateTheme(User $user, string $preset, string $accent, string $background, string $panel, string $text, string $density): void
+    {
+        if ($preset !== 'custom') {
+            if (!isset(self::PRESETS[$preset])) throw new InvalidArgumentException('Choose a valid theme preset.');
+            ['accent'=>$accent,'background'=>$background,'panel'=>$panel,'text'=>$text] = self::PRESETS[$preset];
+        }
+        $user->updateTheme($preset,$accent,$background,$panel,$text,$density);
+        $this->users->save($user);
+    }
+
+    /** Restores the default ArchiveXP colour palette and spacing. */
+    public function resetTheme(User $user): void
+    {
+        $preset = self::PRESETS['archive-purple'];
+        $user->updateTheme('archive-purple',$preset['accent'],$preset['background'],$preset['panel'],$preset['text'],'spacious');
         $this->users->save($user);
     }
 

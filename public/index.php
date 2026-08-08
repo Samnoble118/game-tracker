@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use GameTracker\Application\Http\AuthController;
 use GameTracker\Application\Http\AccountController;
+use GameTracker\Application\Http\AppearanceController;
 use GameTracker\Application\Http\CollectionDetailsController;
 use GameTracker\Application\Http\GameController;
 use GameTracker\Application\Http\GameJournalController;
@@ -172,11 +173,15 @@ if ($route === 'merchandise') {
 if ($route === 'account') {
     $accountController = new AccountController(
         $auth,
-        $customizer,
         $csrf,
         $root . '/templates/account/index.php',
     );
     $accountController->handle($currentUser, $_SERVER, $_GET, $_POST, $_FILES);
+    return;
+}
+
+if ($route === 'appearance') {
+    (new AppearanceController($customizer,$csrf,$root.'/templates/appearance/index.php'))->handle($currentUser,$_SERVER,$_GET,$_POST,$_FILES);
     return;
 }
 
