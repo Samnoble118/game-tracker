@@ -10,6 +10,7 @@ use GameTracker\Application\Http\AuthController;
 use GameTracker\Application\Http\AccountController;
 use GameTracker\Application\Http\AppearanceController;
 use GameTracker\Application\Http\CollectionDetailsController;
+use GameTracker\Application\Http\DataTransferController;
 use GameTracker\Application\Http\GameController;
 use GameTracker\Application\Http\GameJournalController;
 use GameTracker\Application\Http\MerchandiseController;
@@ -17,6 +18,7 @@ use GameTracker\Application\Http\TrophyController;
 use GameTracker\Application\Service\Authenticator;
 use GameTracker\Application\Service\CollectionDetails;
 use GameTracker\Application\Service\DashboardCustomizer;
+use GameTracker\Application\Service\CollectionCsvTransfer;
 use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Application\Service\GameJournal;
 use GameTracker\Application\Service\GameCoverManager;
@@ -27,6 +29,7 @@ use GameTracker\Core\Http\CsrfToken;
 use GameTracker\Core\Http\SecurityHeaders;
 use GameTracker\Core\Security\RateLimiter;
 use GameTracker\Infrastructure\Persistence\SqliteGameRepository;
+use GameTracker\Infrastructure\Persistence\SqliteImportHistoryRepository;
 use GameTracker\Infrastructure\Persistence\SqliteGameJournalRepository;
 use GameTracker\Infrastructure\Persistence\SqliteCollectionMetadataRepository;
 use GameTracker\Infrastructure\Persistence\SqliteMerchandiseRepository;
@@ -182,6 +185,16 @@ if ($route === 'account') {
 
 if ($route === 'appearance') {
     (new AppearanceController($customizer,$csrf,$root.'/templates/appearance/index.php'))->handle($currentUser,$_SERVER,$_GET,$_POST,$_FILES);
+    return;
+}
+
+if ($route === 'data-transfer') {
+    (new DataTransferController(
+        new CollectionCsvTransfer($library,$merchandiseCollection,$collectionDetails),
+        new SqliteImportHistoryRepository($connection),
+        $csrf,
+        $root.'/templates/account/data-transfer.php',
+    ))->handle($currentUser,$_SERVER,$_GET,$_POST,$_FILES);
     return;
 }
 

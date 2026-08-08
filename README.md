@@ -18,6 +18,18 @@ php -S localhost:8000 -t public
 
 Open <http://localhost:8000> in your browser.
 
+## Collection data transfers
+
+Signed-in users can open **My Account → Data tools** to import or export games
+and merchandise as CSV files. Imports are limited to 2 MB and 1,000 rows. The
+workflow maps spreadsheet headings, previews validation errors, and skips
+duplicate names/platforms, names/categories, and barcodes before confirmation.
+
+Exports contain the account owner's complete records, including private prices,
+purchase dates, receipt references, serial numbers, and notes. These downloads
+should be stored securely because they are deliberately more complete than any
+future public collection profile.
+
 ## Configuration and security
 
 Production settings are supplied through environment variables; copy

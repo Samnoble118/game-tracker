@@ -175,6 +175,12 @@ $themeStyle = "--accent:{$currentUser->themeAccent()};--bg:{$currentUser->themeB
                     <?= $form['id'] === '' ? 'Add to collection' : 'Save changes' ?>
                 </button>
             </form>
+            <?php if ($form['id'] === ''): ?>
+                <aside class="bulk-import-callout">
+                    <div><strong>Managing several games?</strong><span>Import or download your games spreadsheet.</span></div>
+                    <nav class="bulk-transfer-actions" aria-label="Game spreadsheet tools"><a href="/?route=data-transfer&amp;type=games">Upload CSV <span aria-hidden="true">→</span></a><a href="/?route=data-transfer&amp;type=games&amp;action=export">Export CSV <span aria-hidden="true">↓</span></a></nav>
+                </aside>
+            <?php endif; ?>
         </section>
 
         <section class="panel collection-panel" aria-labelledby="collection-title" aria-live="polite">
