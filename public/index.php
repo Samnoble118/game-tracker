@@ -14,6 +14,7 @@ use GameTracker\Application\Http\DataTransferController;
 use GameTracker\Application\Http\GameController;
 use GameTracker\Application\Http\GameJournalController;
 use GameTracker\Application\Http\MerchandiseController;
+use GameTracker\Application\Http\PublicProfileController;
 use GameTracker\Application\Http\TrophyController;
 use GameTracker\Application\Service\Authenticator;
 use GameTracker\Application\Service\CollectionDetails;
@@ -23,6 +24,7 @@ use GameTracker\Application\Service\GameLibrary;
 use GameTracker\Application\Service\GameJournal;
 use GameTracker\Application\Service\GameCoverManager;
 use GameTracker\Application\Service\MerchandiseCollection;
+use GameTracker\Application\Service\PublicProfileManager;
 use GameTracker\Application\Service\TrophyCabinet;
 use GameTracker\Core\Database;
 use GameTracker\Core\Http\CsrfToken;
@@ -96,12 +98,14 @@ session_start();
 
 $userRepository = new SqliteUserRepository($connection);
 $gameRepository = new SqliteGameRepository($connection);
+$merchandiseRepository = new SqliteMerchandiseRepository($connection);
 $auth = new Authenticator(
     $userRepository,
     $config['session_idle_timeout'],
     $config['session_absolute_timeout'],
 );
 $customizer = new DashboardCustomizer($userRepository, $root . '/storage/uploads');
+$profileManager = new PublicProfileManager($userRepository, $root . '/storage/uploads');
 $coverManager = new GameCoverManager($gameRepository, $root . '/storage/covers');
 $csrf = new CsrfToken();
 $authController = new AuthController(
@@ -110,6 +114,15 @@ $authController = new AuthController(
     $csrf,
     new RateLimiter($connection),
     $root . '/templates/auth/form.php',
+);
+$profileController = new PublicProfileController(
+    $userRepository,
+    $gameRepository,
+    $merchandiseRepository,
+    $profileManager,
+    $csrf,
+    $root . '/templates/account/public-profile.php',
+    $root . '/templates/public/cabinet.php',
 );
 
 if ($route === 'login' || $route === 'register') {
@@ -129,13 +142,25 @@ if ($route === 'logout' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
 $currentUser = $auth->currentUser();
 
+if ($route === 'display-cabinet') {
+    $profileController->cabinet($_GET);
+    return;
+}
+
+if ($route === 'profile-image') {
+    $owner = $userRepository->findByUsername((string)($_GET['user'] ?? ''));
+    if ($owner === null) { http_response_code(404); return; }
+    $profileController->image($owner, $currentUser);
+    return;
+}
+
 if ($currentUser === null) {
     header('Location: /?route=login', true, 303);
     return;
 }
 
 $library = new GameLibrary($gameRepository, $currentUser->id());
-$merchandiseCollection = new MerchandiseCollection(new SqliteMerchandiseRepository($connection), $currentUser->id());
+$merchandiseCollection = new MerchandiseCollection($merchandiseRepository, $currentUser->id());
 $collectionDetails = new CollectionDetails($library, $merchandiseCollection, new SqliteCollectionMetadataRepository($connection), $currentUser->id());
 
 if ($route === 'collection-details') {
@@ -185,6 +210,11 @@ if ($route === 'account') {
 
 if ($route === 'appearance') {
     (new AppearanceController($customizer,$csrf,$root.'/templates/appearance/index.php'))->handle($currentUser,$_SERVER,$_GET,$_POST,$_FILES);
+    return;
+}
+
+if ($route === 'profile-settings') {
+    $profileController->settings($currentUser,$_SERVER,$_GET,$_POST,$_FILES);
     return;
 }
 

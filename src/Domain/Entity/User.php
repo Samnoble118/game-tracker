@@ -31,6 +31,10 @@ final class User
         private string $themePanel = '#141821',
         private string $themeText = '#f5f7fb',
         private string $layoutDensity = 'spacious',
+        private string $profileDisplayName = '',
+        private string $profileBio = '',
+        private bool $profilePublic = false,
+        private ?string $profileImage = null,
     ) {
         $this->updateEmail($this->email);
         $this->updateUsername($this->username);
@@ -45,6 +49,7 @@ final class User
             $this->merchandiseOverlay,
         );
         $this->updateTheme($this->themePreset, $this->themeAccent, $this->themeBackground, $this->themePanel, $this->themeText, $this->layoutDensity);
+        $this->updatePublicProfile($this->profileDisplayName, $this->profileBio, $this->profilePublic, $this->profileImage);
     }
 
     /** Returns the persisted identifier or null for a new account. */
@@ -75,6 +80,31 @@ final class User
     public function displayName(): string
     {
         return $this->username ?? $this->email;
+    }
+
+    /** Returns the collector name shown on the public cabinet. */
+    public function profileDisplayName(): string { return $this->profileDisplayName !== '' ? $this->profileDisplayName : $this->displayName(); }
+
+    /** Returns the short biography shown on the public cabinet. */
+    public function profileBio(): string { return $this->profileBio; }
+
+    /** Reports whether the shareable cabinet may be viewed without signing in. */
+    public function profilePublic(): bool { return $this->profilePublic; }
+
+    /** Returns the private profile-image filename. */
+    public function profileImage(): ?string { return $this->profileImage; }
+
+    /** Validates and replaces public profile preferences. */
+    public function updatePublicProfile(string $displayName, string $bio, bool $public, ?string $image): void
+    {
+        $displayName = trim($displayName);
+        $bio = trim($bio);
+        if (mb_strlen($displayName) > 60) throw new InvalidArgumentException('Display name must be 60 characters or fewer.');
+        if (mb_strlen($bio) > 300) throw new InvalidArgumentException('Bio must be 300 characters or fewer.');
+        $this->profileDisplayName = $displayName;
+        $this->profileBio = $bio;
+        $this->profilePublic = $public;
+        $this->profileImage = $image;
     }
 
     /** Returns the private dashboard-image filename. */
