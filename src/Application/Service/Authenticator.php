@@ -50,9 +50,10 @@ final readonly class Authenticator
     }
 
     /** Authenticates valid credentials or returns null when they do not match. */
-    public function login(string $email, string $password): ?User
+    public function login(string $identifier, string $password): ?User
     {
-        $user = $this->users->findByEmail($email);
+        $identifier = trim($identifier);
+        $user = $this->users->findByEmail($identifier) ?? $this->users->findByUsername($identifier);
         $passwordHash = $user?->passwordHash()
             ?? '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
 

@@ -44,6 +44,19 @@ final readonly class CollectionDetailsController
         }
         $metadata = $this->details->details($type, $itemId);
         $related = $this->details->related($metadata->franchise(), $type, $itemId);
+        $relatedItems = [];
+        foreach ($related['games'] as $game) {
+            $relatedItems[] = ['type'=>'Game','name'=>$game->title(),'subtitle'=>$game->platform(),'url'=>'/?route=collection-details&type=game&id='.$game->id()];
+        }
+        foreach ($related['merchandise'] as $item) {
+            $relatedItems[] = ['type'=>'Merchandise','name'=>$item->name(),'subtitle'=>$item->category()->label(),'url'=>'/?route=collection-details&type=merchandise&id='.$item->id()];
+        }
+        usort($relatedItems, static fn (array $left, array $right): int => strcasecmp($left['name'], $right['name']));
+        $relatedPerPage = 6;
+        $relatedTotal = count($relatedItems);
+        $relatedTotalPages = max(1, (int)ceil($relatedTotal / $relatedPerPage));
+        $relatedPage = min(max(1, (int)($query['related_page'] ?? 1)), $relatedTotalPages);
+        $relatedItems = array_slice($relatedItems, ($relatedPage - 1) * $relatedPerPage, $relatedPerPage);
         $conditions = ItemCondition::cases();
         $packagingOptions = ItemPackaging::cases();
         $csrfToken = $this->csrf->value();

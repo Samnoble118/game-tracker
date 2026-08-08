@@ -71,6 +71,20 @@ final class AuthenticatorTest extends TestCase
         self::assertSame('player_one', $user->displayName());
     }
 
+    /** Confirms an existing username can be used instead of an email address. */
+    public function test_it_authenticates_with_a_username(): void
+    {
+        $auth = new Authenticator(new InMemoryUserRepository());
+        $user = $auth->register('player@example.com', 'strong-passphrase', 'strong-passphrase');
+        $auth->updateProfile($user, 'player_one', $user->email(), 'strong-passphrase');
+        $_SESSION = [];
+
+        $loggedIn = $auth->login('PLAYER_ONE', 'strong-passphrase');
+
+        self::assertNotNull($loggedIn);
+        self::assertSame($user->id(), $loggedIn->id());
+    }
+
     /** Confirms a verified password can be securely replaced. */
     public function test_it_replaces_the_password_after_verifying_the_current_one(): void
     {
